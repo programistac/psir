@@ -1,0 +1,10 @@
+Spakowanie koloru do RGBA za pomocą GL_UNSIGNED_BYTE z normalizacją to jest absolutny game-changer w tego typu projektach.
+Dlaczego to jest o wiele lepsze?
+1. Oszczędność pamięci: Zamiast 12 bajtów (3x float) albo 6 bajtów (3x int16_t), 
+	cały kolor dla jednego wierzchołka zajmuje teraz dokładnie 4 bajty.
+2. Idealne wyrównanie pamięci (Data Alignment): Współczesne procesory (i karty graficzne) kochają, 
+	gdy dane są wyrównane do wielokrotności 4 bajtów. 
+	Struktura o rozmiarze np. 16 czy 24 bajtów będzie przetwarzana przez CPU i cache o wiele szybciej niż struktura, 
+	która ma "krzywy" rozmiar (np. 18 bajtów). Dodanie kanału Alpha idealnie dopełnia strukturę do równego bloku.
+3. Prawdziwy PSX: Oryginalny hardware PS1 w pakietach GPU (GP0 commands) 
+	też kodował kolor jako pojedyncze bajty RGB spakowane w jedno 32-bitowe słowo (gdzie ostatnie 8 bitów służyło jako kod komendy GPU). 
