@@ -3,6 +3,7 @@
 A lightweight, high-performance 3D software-assisted renderer written in **strict ANSI C (C89)**, heavily inspired by the hardware architecture and constraints of the original PlayStation 1 (PSX). 
 
 This project completely avoids modern high-level rendering frameworks, external float libraries, and modern C features. Instead, it features a highly disciplined codebase where all components are engineered under strict mid-80s standards, recreating the iconic 32-bit retro aesthetic through pure fixed-point mathematics, custom low-level pipelines, and Modern OpenGL. 
+<img width="1280" height="720" alt="Screenshot From 2026-11-03 00-46-51" src="https://github.com/user-attachments/assets/3ddf3c33-011c-410d-8863-29de52797331" />
 
 ### 🚀 Key Technical Features
 
