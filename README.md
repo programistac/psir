@@ -53,6 +53,7 @@ bash
 
 # Clone the repository
 git clone https://github.com/programistac/psir.git
+
 cd psir
 
 # Build the project using the provided Makefile
