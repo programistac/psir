@@ -34,6 +34,12 @@ unsigned int create_psx_program(void)
 
 	glLinkProgram(p);
 
+	glDetachShader(p, vs);
+	glDetachShader(p, fs);
+
+	glDeleteShader(vs);
+	glDeleteShader(fs);
+
 	return p;
 }
 
