@@ -362,6 +362,8 @@ int main(int argc,char *argv[])
 	}
 	texture_clut_palette_atlas_destroy(&texture_atlas);
 	texture_clut_indexed_image_destroy(&texture_image);
+	glUseProgram(0);
+	glDeleteProgram(program);
 	gpu_destroy(&gpu);
 	framebuffer_destroy(&renderer.fb);
 	platform_shutdown(&platform);
