@@ -104,7 +104,9 @@ sudo dnf install SDL2-devel glew-devel libpng-devel make gcc
 Clone and build:
 
 git clone https://github.com/programistac/psir.git
+
 cd psir
+
 make
 
 Run:
