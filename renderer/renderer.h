@@ -24,7 +24,6 @@ void renderer_end(struct renderer *r);
 
 void renderer_draw_frame(struct gpu_data *data);
 
-void renderer_draw_static_geometry(struct gpu_data *geometry, int num_vertices);
 void renderer_present(struct renderer *r, int w, int h);
 void renderer_destroy(struct renderer *r);
 

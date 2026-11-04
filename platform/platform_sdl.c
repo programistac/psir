@@ -12,6 +12,7 @@ int platform_initialize(
 		double target_fps
 		)
 {
+	GLenum err;
 	assert(p != NULL);
 	p->initialized = 0;
 
@@ -80,7 +81,7 @@ int platform_initialize(
 	SDL_GL_SetSwapInterval(vsync);
 
 	glewExperimental = GL_TRUE;
-	GLenum err = glewInit();
+	err = glewInit();
 
 	if (err != GLEW_OK) {
 		fprintf(stderr, "glewInit failed: %s\n", glewGetErrorString(err));
