@@ -88,7 +88,7 @@ int main(int argc,char *argv[])
 	gpu_create(&gpu);
 	program = create_psx_program();
 
-	renderer_initialize(&renderer, 320, 240);
+	renderer_initialize(&renderer, INTERNAL_W, INTERNAL_H);
 
 
 	/* =========================================
@@ -115,7 +115,6 @@ int main(int argc,char *argv[])
 	        int16_t s[9];
 		int16_t r[9];
 		int16_t m[9];
-		int screenW, screenH;
 	
 		platform_begin_frame(&platform);
 
@@ -355,13 +354,13 @@ int main(int argc,char *argv[])
 		gpu_reset_stream(&gpu);
 		renderer_end(&renderer);
 
-		SDL_GetWindowSize(platform.window, &screenW, &screenH);
+		/* SDL_GetWindowSize(platform.window, &screenW, &screenH); */
 
-		glViewport(0, 0, screenW, screenH);
+		glViewport(0, 0, platform.window_w, platform.window_h);
 
 		renderer_set_clear_color(&renderer, 0.0f, 0.0f, 0.0f, 1.0f);
 		renderer_clear(&renderer, RENDERER_CLEAR_COLOR);
-		renderer_present(&renderer, screenW, screenH);
+		renderer_present(&renderer, platform.window_w, platform.window_h);
 
 		platform_end_frame(&platform);
 	}
@@ -372,7 +371,6 @@ int main(int argc,char *argv[])
 	gpu_destroy(&gpu);
 	framebuffer_destroy(&renderer.fb);
 	platform_shutdown(&platform);
-	SDL_Quit();
 
 	return 0;
 }
