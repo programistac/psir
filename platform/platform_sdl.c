@@ -179,13 +179,50 @@ void platform_poll_events(struct platform_sdl* p)
 	SDL_Event e;
 
 	while (SDL_PollEvent(&e)) {
-
-		if (e.type == SDL_QUIT)
-			p->running = 0;
-
-		if (e.type == SDL_KEYDOWN) {
-			if (e.key.keysym.sym == SDLK_ESCAPE)
+		switch (e.type) {
+			case SDL_QUIT: {
 				p->running = 0;
+			} break;
+
+			case SDL_WINDOWEVENT: {
+				/* Obsługa zmiany rozmiaru okna 
+				 * przez system operacyjny */
+				if (e.window.event == 
+						SDL_WINDOWEVENT_RESIZED || 
+				    e.window.event == 
+						SDL_WINDOWEVENT_SIZE_CHANGED) {
+					p->window_w = e.window.data1;
+					p->window_h = e.window.data2;
+					/* Aktualizacja obszaru renderowania */
+					glViewport(
+							0, 
+							0, 
+							p->window_w, 
+							p->window_h
+					);
+				}
+			} break;
+
+			case SDL_KEYDOWN: {
+				/* Ignoruj powtórzenia klawiszy, jeśli 
+				 * system operacyjny 
+				 * wysyła je przy przytrzymaniu */
+				if (e.key.repeat)
+					break;
+
+				if (e.key.keysym.sym == SDLK_ESCAPE) {
+					p->running = 0;
+				}
+				
+			} break;
+
+			case SDL_KEYUP: {
+				/* Tutaj obsługuje puszczenie klawisza */
+			} break;
+			
+			default:
+				break;
 		}
 	}
 }
+
