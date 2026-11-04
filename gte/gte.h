@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#define TRUE 1
-#define FALSE 0
-
 /* Parametry renderera (wartości przykładowe, idealne dla stylu PSX) */
 
 /* Granica obcinania Z (Wierzchołek za blisko = clipping) */

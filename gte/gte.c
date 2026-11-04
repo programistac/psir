@@ -19,7 +19,7 @@ int16_t gte_project_vertex_3d(
 
 	/* 2. Near Clipping */ 
 	if (cam_v[2] <= GTE_NEAR_PLANE) {
-		return FALSE;
+		return 0;
 	}
 
 	/* 3. Projekcja perspektywiczna (Podział przez Z) */
@@ -33,6 +33,6 @@ int16_t gte_project_vertex_3d(
         *out_y = FIX_CLAMP(y_proj);
         *out_z = cam_v[2]; /* zwracam z - TODO: brak sprawdzenia czy lezy w 0..32767 */
 
-        return TRUE;
+        return 1;
 
 }

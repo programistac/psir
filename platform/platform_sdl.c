@@ -1,17 +1,29 @@
 #include "platform_sdl.h"
+#include <assert.h>
 
 #include <GL/glew.h>
 
-int platform_init(
+int platform_initialize(
 		struct platform_sdl* p,
-		int width,
-		int height,
+		uint16_t width,
+		uint16_t height,
 		const char* title,
-		int vsync,
+		uint8_t vsync,
 		double target_fps
 		)
 {
-	SDL_Init(SDL_INIT_VIDEO);
+	assert(p != NULL);
+	p->initialized = 0;
+
+	if (target_fps <= 0.0) {
+		fprintf(stderr, "Invalid target_fps: %f\n", target_fps);
+		return 0;
+	}
+
+	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+		fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
+		return 0;
+	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
@@ -35,6 +47,8 @@ int platform_init(
 	p->vsync = vsync;
 
 	p->target_fps = target_fps;
+
+	assert(target_fps > 0.0);
 	p->target_frame_time = 1.0 / target_fps;
 
 	p->running = 1;
@@ -47,27 +61,80 @@ int platform_init(
 			height,
 			SDL_WINDOW_OPENGL |
 			SDL_WINDOW_FULLSCREEN_DESKTOP
-			);
+	);
+
+	if (p->window == NULL) {
+		fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
+		return 0;
+	}
 
 	p->gl_context = SDL_GL_CreateContext(p->window);
+	if (p->gl_context == NULL) {
+		fprintf(stderr, "SDL_GL_CreateContext failed: %s\n", SDL_GetError());
+		SDL_DestroyWindow(p->window);
+		p->window = NULL;
+		SDL_Quit();
+		return 0;
+	}
 
 	SDL_GL_SetSwapInterval(vsync);
 
 	glewExperimental = GL_TRUE;
-	glewInit();
+	GLenum err = glewInit();
+
+	if (err != GLEW_OK) {
+		fprintf(stderr, "glewInit failed: %s\n", glewGetErrorString(err));
+		SDL_GL_DeleteContext(p->gl_context);
+		SDL_DestroyWindow(p->window);
+		p->gl_context = NULL;
+		p->window = NULL;
+		SDL_Quit();
+		return 0;
+	}
 
 	p->perf_freq = SDL_GetPerformanceFrequency();
-
+	if (p->perf_freq == 0) {
+		fprintf(stderr, "SDL_GetPerformanceFrequency failed\n");
+		SDL_GL_DeleteContext(p->gl_context);
+		SDL_DestroyWindow(p->window);
+		p->gl_context = NULL;
+		p->window = NULL;
+		SDL_Quit();
+		return 0;
+	}
+	
+	p->initialized = 1;
 	return 1;
 }
 
 void platform_shutdown(struct platform_sdl* p)
 {
-	SDL_GL_DeleteContext(p->gl_context);
-	SDL_DestroyWindow(p->window);
+	assert(p != NULL);
+	
+	/* Jeśli inicjalizacja w ogóle się nie udała, nie robimy nic */
+	if (!p->initialized)
+		return;
 
+	if (p->gl_context != NULL) {
+		SDL_GL_DeleteContext(p->gl_context);
+		p->gl_context = NULL;
+	}
+
+	if (p->window != NULL) {
+		SDL_DestroyWindow(p->window);
+		p->window = NULL;
+	}
+
+	/* Zamknięcie głównego podsystemu SDL */
 	SDL_Quit();
+
+	/* IMG_Quit(); */
+	/* TTF_Quit(); */
+
+	p->initialized = 0;
+	p->running = 0;
 }
+
 
 /* Wysokorozdzielczy licznik czasu służy do precyzyjnego pomiaru czasu 
    trwania klatki.
@@ -81,11 +148,14 @@ void platform_shutdown(struct platform_sdl* p)
 
 void platform_begin_frame(struct platform_sdl* p)
 {
+	assert(p != NULL);
+	assert(p->initialized);
 	p->frame_start = SDL_GetPerformanceCounter();
 }
 
 void platform_end_frame(struct platform_sdl* p)
 {
+	assert(p != NULL);
 	SDL_GL_SwapWindow(p->window);
 
 	Uint64 frame_end =
@@ -105,6 +175,7 @@ void platform_end_frame(struct platform_sdl* p)
 
 void platform_poll_events(struct platform_sdl* p)
 {
+	assert(p != NULL);
 	SDL_Event e;
 
 	while (SDL_PollEvent(&e)) {

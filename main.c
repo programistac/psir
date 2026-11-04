@@ -23,15 +23,15 @@
 
 int main(int argc,char *argv[])
 {
-	struct platform_sdl platform;
-	platform_init(&platform, WIN_W, WIN_H, "PSX DEMO", 0, 25.0);
+	struct platform_sdl platform = { 0 };
+	platform_initialize(&platform, WIN_W, WIN_H, "PSX DEMO", 0, 25.0);
 
 	SDL_ShowCursor(SDL_DISABLE);
 
-	struct gpu_data gpu;
+	struct gpu_data gpu = { 0 };
 	gpu_create(&gpu);
 
-	struct renderer renderer;
+	struct renderer renderer = { 0 };
 	unsigned int program = create_psx_program();
 
 	renderer_initialize(&renderer, 320, 240);
@@ -51,7 +51,7 @@ int main(int argc,char *argv[])
 
 	glEnable(GL_DEPTH_TEST);
 
-	struct gte_transform trojkat;
+	struct gte_transform trojkat = { 0 };
 	/* identity(trojkat.m); */
 	/* rotate_x(trojkat.m, DEG_TO_RAD(45.0f));*/
 	trojkat.v[0] = 0;/*4096;*/
@@ -139,7 +139,7 @@ int main(int argc,char *argv[])
 
 		scale(s, FIX_ONE, FIX_ONE, FIX_ONE);
 		/* TODO: tabela z wartosciami sin/cos  */
-		rotate_y(r, DEG_TO_RAD(16 * t));
+		rotate_y(r, DEG_TO_RAD(8 * t));
 
 		multiply_mxm(m, s, r);
 

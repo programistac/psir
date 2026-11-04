@@ -2,18 +2,24 @@
 #define PLATFORM_SDL_H
 
 #include <SDL2/SDL.h>
+#include <stdint.h>
 
 struct platform_sdl
 {
+	/* State */
+	uint8_t initialized;
+	uint8_t running;
+
+	/* SDL */
 	SDL_Window* window;
 	SDL_GLContext gl_context;
 
-	int window_w;
-	int window_h;
+	/* Window */
+	uint16_t window_w;
+	uint16_t window_h;
+	uint8_t vsync;
 
-	int running;
-	int vsync;
-
+	/* Frame timing */
 	double target_fps;
 	double target_frame_time;
 
@@ -21,12 +27,12 @@ struct platform_sdl
 	Uint64 frame_start;
 };
 
-int  platform_init(
+int  platform_initialize(
 		struct platform_sdl* p,
-		int width,
-		int height,
+		uint16_t width,
+		uint16_t height,
 		const char* title,
-		int vsync,
+		uint8_t vsync,
 		double target_fps
 		);
 

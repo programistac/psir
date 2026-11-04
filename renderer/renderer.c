@@ -2,10 +2,13 @@
 #include "../gpu/shader.h"
 
 #include "GL/glew.h"
+#include <assert.h>
 
 
 void renderer_initialize(struct renderer *r, int w, int h)
 {
+	assert(r != NULL);
+
 	r->resolution_width = w;
 	r->resolution_height = h;
 
