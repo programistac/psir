@@ -12,9 +12,8 @@ void gpu_destroy(struct gpu_data *data)
 
 void gpu_create(struct gpu_data *data)
 {
-	assert(data != NULL);
-
 	unsigned int i; /* for loop counter */
+	assert(data != NULL);
 
 	data->gpu_primitive_count = 0;
 

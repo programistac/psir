@@ -9,6 +9,8 @@ int16_t gte_project_vertex_3d(
 	int16_t cam_v[3];
 	int32_t x_proj, y_proj, z_proj;
 
+	(void)z_proj;
+
 	/* 1. Transformacja wierzchołka do przestrzeni kamery */
 	if (t->is_identity) {
 		translate_v3(cam_v, local_v, t->v);

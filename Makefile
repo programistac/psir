@@ -3,7 +3,7 @@ CC := gcc
 TARGET := psx_demo
 BUILD_DIR := build
 
-CFLAGS := -std=c89
+CFLAGS := -std=c89 -Wpedantic -pedantic-errors -Wall -Wextra -Werror -Wno-overlength-strings
 
 SOURCES := \
 	main.c \

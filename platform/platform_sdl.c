@@ -156,18 +156,18 @@ void platform_begin_frame(struct platform_sdl* p)
 
 void platform_end_frame(struct platform_sdl* p)
 {
+	Uint64 frame_end;
+	double elapsed, remaining;
+
 	assert(p != NULL);
 	SDL_GL_SwapWindow(p->window);
 
-	Uint64 frame_end =
-		SDL_GetPerformanceCounter();
+	frame_end = SDL_GetPerformanceCounter();
 
-	double elapsed =
-		(double)(frame_end - p->frame_start)
-		/ (double)p->perf_freq;
+	elapsed = (double)(frame_end - p->frame_start)
+			/ (double)p->perf_freq;
 
-	double remaining =
-		p->target_frame_time - elapsed;
+	remaining = p->target_frame_time - elapsed;
 
 	if (remaining > 0.0) {
 		SDL_Delay((Uint32)(remaining * 1000.0));
@@ -176,8 +176,8 @@ void platform_end_frame(struct platform_sdl* p)
 
 void platform_poll_events(struct platform_sdl* p)
 {
-	assert(p != NULL);
 	SDL_Event e;
+	assert(p != NULL);
 
 	while (SDL_PollEvent(&e)) {
 		switch (e.type) {

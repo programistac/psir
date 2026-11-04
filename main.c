@@ -22,45 +22,21 @@
 
 
 int main(int argc,char *argv[])
-{
+{       
 	struct platform_sdl platform = { 0 };
-	platform_initialize(&platform, WIN_W, WIN_H, "PSX DEMO", 0, 25.0);
-
-	SDL_ShowCursor(SDL_DISABLE);
-
 	struct gpu_data gpu = { 0 };
-	gpu_create(&gpu);
-
 	struct renderer renderer = { 0 };
-	unsigned int program = create_psx_program();
-
-	renderer_initialize(&renderer, 320, 240);
-
-
-	/* =========================================
-	   LOAD TEXTURE
-	   ========================================= */
-
+	struct gte_transform trojkat = { 0 };
+	
+	unsigned int program;
 	struct texture_clut_palette_atlas texture_atlas;
 	struct texture_clut_indexed_image texture_image;
-	texture_load_clut_png_extract_indices(&texture_image, "assets/clut.png");
-	texture_load_clut_png_extract_palette(&texture_atlas, "assets/clut.png");
-	texture_clut_palette_atlas_upload(&texture_atlas);
-	texture_clut_indexed_image_upload(&texture_image);
-
-
-	glEnable(GL_DEPTH_TEST);
-
-	struct gte_transform trojkat = { 0 };
-	/* identity(trojkat.m); */
-	/* rotate_x(trojkat.m, DEG_TO_RAD(45.0f));*/
-	trojkat.v[0] = 0;/*4096;*/
-	trojkat.v[1] = 0;/*-4096 - 2048 - 1024;*/
-	trojkat.v[2] = 5*FIX_ONE;
-	trojkat.is_identity = 0;
-
-
-
+	
+	/* Wierzcholki robocze */
+	struct gpu_vertex a;
+	struct gpu_vertex b;
+	struct gpu_vertex c;
+	
 	/* =========================================
 	   Wierzcholki lokalne szescianu
 	   ========================================= */
@@ -100,19 +76,52 @@ int main(int argc,char *argv[])
 	struct gpu_vertex v7 = {
 		-4096,  4096,  4096, 0, 0, 255, 255, 255, 255, GPU_RENDER_TEXTURED_FLAT
 	};
+	
+	  /* Uciszenie kompilatora - informujemy, że świadomie ich nie używamy */
+        (void)argc;
+        (void)argv;
+
+	platform_initialize(&platform, WIN_W, WIN_H, "PSX DEMO", 0, 25.0);
+
+	SDL_ShowCursor(SDL_DISABLE);
+
+	gpu_create(&gpu);
+	program = create_psx_program();
+
+	renderer_initialize(&renderer, 320, 240);
 
 
-	/* Wierzcholki robocze */
-	struct gpu_vertex a;
-	struct gpu_vertex b;
-	struct gpu_vertex c;
+	/* =========================================
+	   LOAD TEXTURE
+	   ========================================= */
+	texture_load_clut_png_extract_indices(&texture_image, "assets/clut.png");
+	texture_load_clut_png_extract_palette(&texture_atlas, "assets/clut.png");
+	texture_clut_palette_atlas_upload(&texture_atlas);
+	texture_clut_indexed_image_upload(&texture_image);
+
+
+	glEnable(GL_DEPTH_TEST);
+
+	
+	/* identity(trojkat.m); */
+	/* rotate_x(trojkat.m, DEG_TO_RAD(45.0f));*/
+	trojkat.v[0] = 0;/*4096;*/
+	trojkat.v[1] = 0;/*-4096 - 2048 - 1024;*/
+	trojkat.v[2] = 5*FIX_ONE;
+	trojkat.is_identity = 0;
 
 	while(platform.running) {
+	        float t;
+	        int16_t s[9];
+		int16_t r[9];
+		int16_t m[9];
+		int screenW, screenH;
+	
 		platform_begin_frame(&platform);
 
 		platform_poll_events(&platform);
 
-		float t = SDL_GetTicks()*0.001f;
+		t = SDL_GetTicks()*0.001f;
 
 		renderer_begin(&renderer);
 		renderer_set_clear_color(&renderer, 0.05f, 0.05f, 0.1f, 1.0f);
@@ -133,9 +142,7 @@ int main(int argc,char *argv[])
 		  multiply_mxm(temp, m, rz);*/
 
 		/* rotate_y(trojkat.m, DEG_TO_RAD(t * 16)); */
-		int16_t s[9];
-		int16_t r[9];
-		int16_t m[9];
+		
 
 		scale(s, FIX_ONE, FIX_ONE, FIX_ONE);
 		/* TODO: tabela z wartosciami sin/cos  */
@@ -347,8 +354,6 @@ int main(int argc,char *argv[])
 		renderer_draw_frame(&gpu);
 		gpu_reset_stream(&gpu);
 		renderer_end(&renderer);
-
-		int screenW, screenH;
 
 		SDL_GetWindowSize(platform.window, &screenW, &screenH);
 
