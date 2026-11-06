@@ -2,10 +2,12 @@
 
 #include <GL/glew.h>
 #include <assert.h>
-#include <stdio.h>
+#include <stddef.h> /* NULL */
+#include <stdio.h> /* fpintf(stderr, ...) */
 
 void gpu_destroy(struct gpu_data *data)
 {
+	assert(data != NULL);
 	glDeleteVertexArrays(VAO_NUM, data->vaos);
 	glDeleteBuffers(BUFFER_NUM, data->buffers);
 }
@@ -15,7 +17,7 @@ void gpu_create(struct gpu_data *data)
 	unsigned int i; /* for loop counter */
 	assert(data != NULL);
 
-	data->gpu_primitive_count = 0;
+	data->gpu_vertex_count = 0;
 
 /* ===========================================================
 	VAO + VBO
@@ -152,17 +154,20 @@ void gpu_create(struct gpu_data *data)
 
 void gpu_receive_data(struct gpu_data *data)
 {
+	assert(data != NULL);
+
 	glNamedBufferSubData(
 		data->buffers[BUFFER_VERTEX],
 		0,
-		data->gpu_primitive_count * sizeof(struct gpu_vertex),
+		data->gpu_vertex_count * sizeof(struct gpu_vertex),
 		data->gpu_primitive_stream
 	);
 }
 
 void gpu_reset_stream(struct gpu_data *data)
 {
-	data->gpu_primitive_count = 0;
+	assert(data != NULL);
+	data->gpu_vertex_count = 0;
 }
 
 void gpu_submit_triangle(
@@ -176,15 +181,13 @@ void gpu_submit_triangle(
 	assert(a != NULL);
 	assert(b != NULL);
 	assert(c != NULL);
-	assert(gpu->gpu_primitive_count <= GPU_MAX_VERTICES);
 
-
-	if (gpu->gpu_primitive_count + 3 > GPU_MAX_VERTICES) {
+	if (gpu->gpu_vertex_count + 3 > GPU_MAX_VERTICES) {
 		fprintf(stderr, "GPU: primitive stream is full!\n");
 		return;
 	}
 
-	gpu->gpu_primitive_stream[gpu->gpu_primitive_count++] = *a;
-	gpu->gpu_primitive_stream[gpu->gpu_primitive_count++] = *b;
-	gpu->gpu_primitive_stream[gpu->gpu_primitive_count++] = *c;
+	gpu->gpu_primitive_stream[gpu->gpu_vertex_count++] = *a;
+	gpu->gpu_primitive_stream[gpu->gpu_vertex_count++] = *b;
+	gpu->gpu_primitive_stream[gpu->gpu_vertex_count++] = *c;
 }

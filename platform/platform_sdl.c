@@ -3,6 +3,19 @@
 
 #include <GL/glew.h>
 
+/* Modul platformowy SDL2/OpenGL.
+ * Odpowiada za:
+ * - inicjalizacje i zamykanie SDL oraz OpenGL,
+ * - tworzenie okna,
+ * - obsluge glownej petli zdarzen, 
+ * - synchronizacje klatek,
+ * - podstawowa obsluge wejscia uzytkownika.
+ *
+ * funkcje zakladaja przekazanie poprawnego wskaznika
+ * do struktury platform_sdl.
+ * poprawnosc argumentow jest weryfikowana za pomoca assert().
+ */
+
 int platform_initialize(
 		struct platform_sdl* p,
 		uint16_t width,
@@ -48,8 +61,6 @@ int platform_initialize(
 	p->vsync = vsync;
 
 	p->target_fps = target_fps;
-
-	assert(target_fps > 0.0);
 	p->target_frame_time = 1.0 / target_fps;
 
 	p->running = 1;
@@ -78,7 +89,10 @@ int platform_initialize(
 		return 0;
 	}
 
-	SDL_GL_SetSwapInterval(vsync);
+	if (SDL_GL_SetSwapInterval(vsync) != 0) {
+		fprintf(stderr, "SDL_GL_SetSwapInterval failed: %s\n", 
+				SDL_GetError());
+	}
 
 	glewExperimental = GL_TRUE;
 	err = glewInit();
@@ -160,6 +174,8 @@ void platform_end_frame(struct platform_sdl* p)
 	double elapsed, remaining;
 
 	assert(p != NULL);
+	assert(p->initialized);
+
 	SDL_GL_SwapWindow(p->window);
 
 	frame_end = SDL_GetPerformanceCounter();

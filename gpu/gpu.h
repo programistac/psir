@@ -28,7 +28,9 @@ struct gpu_vertex {
 	uint8_t r, g, b, a; /* Kolor */
 	uint8_t u, v; /* Pozycja Textury */
 
-	unsigned int render_mode;
+	enum gpu_render_modes render_mode;
+
+	/* wyrownanie 6 4 2 4 = 16 jest ok!  */
 };
 
 
@@ -72,7 +74,7 @@ struct gpu_data {
 								   danych wierzcholkow */
 	unsigned int buffers[BUFFER_NUM]; /* przechowuje dane wierzcholkow w pamieci GPU */
 	struct gpu_vertex gpu_primitive_stream[GPU_MAX_VERTICES];
-	unsigned int gpu_primitive_count;
+	unsigned int gpu_vertex_count;
 };
 
 /* ==========================================================

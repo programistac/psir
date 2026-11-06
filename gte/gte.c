@@ -1,6 +1,9 @@
 #include "gte.h"
 #include "../math/math3d.h"
 
+#include <assert.h>
+#include <stddef.h> /* NULL */
+
 int16_t gte_project_vertex_3d(
 		int16_t *out_x, int16_t *out_y, int16_t *out_z,
                 const int16_t *local_v, const struct gte_transform *t, 
@@ -9,7 +12,13 @@ int16_t gte_project_vertex_3d(
 	int16_t cam_v[3];
 	int32_t x_proj, y_proj, z_proj;
 
-	(void)z_proj;
+	assert(out_x != NULL);
+	assert(out_y != NULL);
+	assert(out_z != NULL);
+	assert(local_v != NULL);
+	assert(t != NULL);
+
+	(void)z_proj; /* swiadomie nieuzywam  */
 
 	/* 1. Transformacja wierzchołka do przestrzeni kamery */
 	if (t->is_identity) {
@@ -33,7 +42,7 @@ int16_t gte_project_vertex_3d(
 
         *out_x = FIX_CLAMP(x_proj);
         *out_y = FIX_CLAMP(y_proj);
-        *out_z = cam_v[2]; /* zwracam z - TODO: brak sprawdzenia czy lezy w 0..32767 */
+        *out_z = FIX_CLAMP(cam_v[2]); /* zwracam z - TODO: brak sprawdzenia czy lezy w 0..32767 */
 
         return 1;
 

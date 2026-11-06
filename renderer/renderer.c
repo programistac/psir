@@ -74,7 +74,7 @@ void renderer_end(struct renderer *r)
 void renderer_draw_frame(struct gpu_data *data)
 {
 	glBindVertexArray(data->vaos[VAO_DATA]);
-	glDrawArrays(GL_TRIANGLES, 0, data->gpu_primitive_count);
+	glDrawArrays(GL_TRIANGLES, 0, data->gpu_vertex_count);
 }
 
 void renderer_present(struct renderer *r, int w, int h)

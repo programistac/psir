@@ -1,11 +1,27 @@
 #include "math3d.h"
 #include <math.h>
+#include <stddef.h> /* NULL */
+#include <assert.h>
 
-#include <stdio.h>
+/* Wewnetrzna biblioteka matematyczna 
+ * Wszystkie wskazniki przekazywane do funkcji musza byc poprawne!
+ * Poprawnosc jest weryfikowana za pomoca assert
+ */
+
+/* Celowo uzywam int dla licznikow petli.  
+ * Typy o stalej szerokosci int*_t
+ * sa zarezerwowane dla danych renderera i obliczen
+ * gdzie istotny jest dokladny rozmiar 
+ */
+
 
 void identity(int16_t *m)
 {
 	int i = 0;
+
+	assert(m != NULL);
+
+	/* memset(m, 0, sizeof(int16_t) * 9);  */
 
 	for (i = 0; i < 9; i++) {
 		m[i] = 0;
@@ -24,6 +40,10 @@ void multiply_mxm(int16_t *out, const int16_t *a, const int16_t *b)
 	int c = 0;
 	int r = 0;
 	int i = 0;
+
+	assert(out != NULL);
+	assert(a != NULL);
+	assert(b != NULL);
 
 	for (r = 0; r < 3; r++) {
 		for (c = 0; c < 3; c++) {
@@ -55,8 +75,13 @@ void multiply_vxm(int16_t *out, const int16_t *a, const int16_t *b)
 	int c = 0;
 	int i = 0;
 
+	assert(out != NULL);
+	assert(a != NULL);
+	assert(b != NULL);
+
 	/* Pętla przechodzi po kolumnach macierzy b (odpowiadających składowym X, Y, Z wyniku) */
 	for (c = 0; c < 3; c++) {
+		/* przepelnienie? przy skrajnych wartosciach...  */
 		int32_t sum;
 
 		/* Mnożymy wiersz wektora przez kolumnę c macierzy b */
@@ -67,7 +92,7 @@ void multiply_vxm(int16_t *out, const int16_t *a, const int16_t *b)
 		/* Powrót z formatu Q24 do formatu Q12 */
 		sum >>= FIX_SHIFT;
 
-		/* Nasycenie za pomocą Twojego makra */
+		/* Nasycenie za pomocą makra */
 		result[c] = FIX_CLAMP(sum);
 	}
 
@@ -85,6 +110,10 @@ void translate_v3(int16_t *out, const int16_t *a, const int16_t *offset)
 {
 	int16_t result[3];
 	int i = 0;
+
+	assert(out != NULL);
+	assert(a != NULL);
+	assert(offset != NULL);
 
 	for (i = 0; i < 3; i++) {
 		int32_t sum;
@@ -109,12 +138,14 @@ void rotate_y(int16_t *m, float angle_radians)
 	int16_t cos_a;
 	int16_t sin_a;
 
+	assert(m != NULL);
+
 	/* 1. Ustawiamy macierz jednostkową */
 	identity(m);
 
 	/* 2. Liczymy wartości trygonometryczne */
-	cos_a = (int16_t)(cos(angle_radians) * 4096.0f);
-	sin_a = (int16_t)(sin(angle_radians) * 4096.0f);
+	cos_a = (int16_t)(cos(angle_radians) * FIX_ONE);
+	sin_a = (int16_t)(sin(angle_radians) * FIX_ONE);
 
 	/* 3. Nadpisujemy konkretne komórki bezpośrednio ich numerami w pamięci */
 	m[0] = cos_a;   /* Wiersz 0, Kolumna 0 */
@@ -128,8 +159,10 @@ void rotate_y(int16_t *m, float angle_radians)
 
 void rotate_x(int16_t *m, float angle_radians)
 {
-	int16_t cos_a = (int16_t)(cos(angle_radians) * 4096.0f);
-	int16_t sin_a = (int16_t)(sin(angle_radians) * 4096.0f);
+	int16_t cos_a = (int16_t)(cos(angle_radians) * FIX_ONE);
+	int16_t sin_a = (int16_t)(sin(angle_radians) * FIX_ONE);
+
+	assert(m != NULL);
 
 	identity(m);
 
@@ -142,8 +175,10 @@ void rotate_x(int16_t *m, float angle_radians)
 
 void rotate_z(int16_t *m, float angle_radians)
 {
-	int16_t cos_a = (int16_t)(cos(angle_radians) * 4096.0f);
-	int16_t sin_a = (int16_t)(sin(angle_radians) * 4096.0f);
+	int16_t cos_a = (int16_t)(cos(angle_radians) * FIX_ONE);
+	int16_t sin_a = (int16_t)(sin(angle_radians) * FIX_ONE);
+
+	assert(m != NULL);
 
 	identity(m);
 
@@ -156,6 +191,8 @@ void rotate_z(int16_t *m, float angle_radians)
 
 void scale(int16_t *m, int16_t sx, int16_t sy, int16_t sz)
 {
+	assert(m != NULL);
+
 	identity(m);
 
 	m[0] = sx;
