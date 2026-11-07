@@ -134,7 +134,8 @@ void translate_v3(int16_t *out, const int16_t *a, const int16_t *offset)
 
 
 /* -------------------------------------------------------------------------- */
-/* Generowanie macierzy rotacji wokół osi Y (Q3.12)   */
+/* Generowanie macierzy rotacji wokół osi Y (Q3.12)                           */
+/* dla układu LEWOSKRĘTNEGO (+Z w głąb)					      */
 /* -------------------------------------------------------------------------- */
 void rotate_y(int16_t *m, int angle_id)
 {
@@ -153,11 +154,11 @@ void rotate_y(int16_t *m, int angle_id)
 
 	/* 3. Nadpisujemy konkretne komórki bezpośrednio ich numerami w pamięci */
 	m[0] = cos_a;   /* Wiersz 0, Kolumna 0 */
-	m[2] = sin_a;   /* Wiersz 0, Kolumna 2 */
+	m[2] = -sin_a;   /* Wiersz 0, Kolumna 2 */
 
 	/* m[4] to środek (Y) - zostaje jako 4096 z identity() */
 
-	m[6] = -sin_a;  /* Wiersz 2, Kolumna 0 */
+	m[6] = sin_a;  /* Wiersz 2, Kolumna 0 */
 	m[8] = cos_a;   /* Wiersz 2, Kolumna 2 */
 }
 
@@ -172,8 +173,8 @@ void rotate_x(int16_t *m, int angle_id)
 
 	/* m[0] zostaje jako 4096 */
 	m[4] = cos_a;   /* Wiersz 1, Kolumna 1 */
-	m[5] = -sin_a;  /* Wiersz 1, Kolumna 2 */
-	m[7] = sin_a;   /* Wiersz 2, Kolumna 1 */
+	m[5] = sin_a;  /* Wiersz 1, Kolumna 2 */
+	m[7] = -sin_a;   /* Wiersz 2, Kolumna 1 */
 	m[8] = cos_a;   /* Wiersz 2, Kolumna 2 */
 }
 
@@ -187,8 +188,8 @@ void rotate_z(int16_t *m, int angle_id)
 	identity(m);
 
 	m[0] = cos_a;   /* Wiersz 0, Kolumna 0 */
-	m[1] = -sin_a;  /* Wiersz 0, Kolumna 1 */
-	m[3] = sin_a;   /* Wiersz 1, Kolumna 0 */
+	m[1] = sin_a;  /* Wiersz 0, Kolumna 1 */
+	m[3] = -sin_a;   /* Wiersz 1, Kolumna 0 */
 	m[4] = cos_a;   /* Wiersz 1, Kolumna 1 */
 	/* m[8] zostaje jako 4096 */
 }

@@ -32,7 +32,7 @@ extern int16_t cos_lut[LUT_SIZE];
  *
  * Operacja AND z maska LUT_MASK ograniczy indeks do zakresu
  * [0, LUT_SIZE -1], umozliwiajac cykliczne indeksowanie tablicy.
- * 1000000000000 = 4096
+ * 100000000000 = 4096
  * AND
  * 011111111111 = 4095
  * =
