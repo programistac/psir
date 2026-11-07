@@ -33,6 +33,7 @@ int main(int argc,char *argv[])
 	struct texture_clut_indexed_image texture_image;
 
 	int frame_angle;
+	int rotation_speed;
 	
 	/* Wierzcholki robocze */
 	struct gpu_vertex a;
@@ -116,6 +117,7 @@ int main(int argc,char *argv[])
 
 	math3d_initialize_sin_lut();
 	frame_angle = 0;
+	rotation_speed = 2;
 
 	while(platform.running) {
 	       /* float t;*/
@@ -153,7 +155,8 @@ int main(int argc,char *argv[])
 		scale(s, FIX_ONE, FIX_ONE, FIX_ONE);
 		/* TODO: tabela z wartosciami sin/cos  */
 		/* przed przepelnieniem chroni operacja bitowa AND*/
-		frame_angle = (frame_angle +1) & LUT_MASK;
+		frame_angle = (frame_angle + rotation_speed) & LUT_MASK;
+		printf("kat: %i\n", frame_angle);
 		rotate_y(r, frame_angle);
 
 		multiply_mxm(m, s, r);

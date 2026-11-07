@@ -146,10 +146,7 @@ void rotate_y(int16_t *m, int angle_id)
 	/* 1. Ustawiamy macierz jednostkową */
 	identity(m);
 
-	/* 2. Liczymy wartości trygonometryczne 
-	cos_a = (int16_t)(cos(angle_radians) * FIX_ONE);
-	sin_a = (int16_t)(sin(angle_radians) * FIX_ONE);
-	*/
+	/* Pobieram wartosci sin/cos indeksem z tablicy */
 
 	sin_a = SIN_LUT(angle_id);
 	cos_a = COS_LUT(angle_id);
@@ -164,10 +161,10 @@ void rotate_y(int16_t *m, int angle_id)
 	m[8] = cos_a;   /* Wiersz 2, Kolumna 2 */
 }
 
-void rotate_x(int16_t *m, float angle_radians)
+void rotate_x(int16_t *m, int angle_id)
 {
-	int16_t cos_a = (int16_t)(cos(angle_radians) * FIX_ONE);
-	int16_t sin_a = (int16_t)(sin(angle_radians) * FIX_ONE);
+	int16_t cos_a = COS_LUT(angle_id);
+	int16_t sin_a = SIN_LUT(angle_id);
 
 	assert(m != NULL);
 
@@ -180,10 +177,10 @@ void rotate_x(int16_t *m, float angle_radians)
 	m[8] = cos_a;   /* Wiersz 2, Kolumna 2 */
 }
 
-void rotate_z(int16_t *m, float angle_radians)
+void rotate_z(int16_t *m, int angle_id)
 {
-	int16_t cos_a = (int16_t)(cos(angle_radians) * FIX_ONE);
-	int16_t sin_a = (int16_t)(sin(angle_radians) * FIX_ONE);
+	int16_t cos_a = COS_LUT(angle_id);
+	int16_t sin_a = SIN_LUT(angle_id);
 
 	assert(m != NULL);
 
@@ -214,7 +211,12 @@ void math3d_initialize_sin_lut(void)
 
 	/* wypelnij wartosciami Q3.12 */
 	for (i = 0; i < LUT_SIZE; i++) {
-		angle = (2.0 * PI * i) / LUT_SIZE;
+		/* rozdziel pelny obrot(360stopni = 2*PI radianow)  
+		 * na LUT_SIZE rownych krokow
+		 *
+		 * wyznaczam jaka czesc pelnego obrotu reprezentuje indeks i
+		 */
+		angle = (2 * PI * i) / LUT_SIZE;
 
 		sin_lut[i] = (int16_t)(sin(angle) * FIX_ONE);
 		cos_lut[i] = (int16_t)(cos(angle) * FIX_ONE);
