@@ -1,6 +1,8 @@
 #ifndef GTE_H
 #define GTE_H
 
+#include "../math/math3d.h"
+
 #include <stdint.h>
 
 /* Parametry renderera (wartości przykładowe, idealne dla stylu PSX) */

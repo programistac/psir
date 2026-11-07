@@ -31,6 +31,8 @@ int main(int argc,char *argv[])
 	unsigned int program;
 	struct texture_clut_palette_atlas texture_atlas;
 	struct texture_clut_indexed_image texture_image;
+
+	int frame_angle;
 	
 	/* Wierzcholki robocze */
 	struct gpu_vertex a;
@@ -110,8 +112,13 @@ int main(int argc,char *argv[])
 	trojkat.v[2] = 5*FIX_ONE;
 	trojkat.is_identity = 0;
 
+
+
+	math3d_initialize_sin_lut();
+	frame_angle = 0;
+
 	while(platform.running) {
-	        float t;
+	       /* float t;*/
 	        int16_t s[9];
 		int16_t r[9];
 		int16_t m[9];
@@ -120,7 +127,7 @@ int main(int argc,char *argv[])
 
 		platform_poll_events(&platform);
 
-		t = SDL_GetTicks()*0.001f;
+		/*t = SDL_GetTicks()*0.001f;*/
 
 		renderer_begin(&renderer);
 		renderer_set_clear_color(&renderer, 0.05f, 0.05f, 0.1f, 1.0f);
@@ -145,7 +152,9 @@ int main(int argc,char *argv[])
 
 		scale(s, FIX_ONE, FIX_ONE, FIX_ONE);
 		/* TODO: tabela z wartosciami sin/cos  */
-		rotate_y(r, DEG_TO_RAD(8 * t));
+		/* przed przepelnieniem chroni operacja bitowa AND*/
+		frame_angle = (frame_angle +1) & LUT_MASK;
+		rotate_y(r, frame_angle);
 
 		multiply_mxm(m, s, r);
 

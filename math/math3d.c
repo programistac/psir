@@ -15,6 +15,9 @@
  */
 
 
+int16_t sin_lut[LUT_SIZE];
+int16_t cos_lut[LUT_SIZE];
+
 void identity(int16_t *m)
 {
 	int i = 0;
@@ -133,7 +136,7 @@ void translate_v3(int16_t *out, const int16_t *a, const int16_t *offset)
 /* -------------------------------------------------------------------------- */
 /* Generowanie macierzy rotacji wokół osi Y (Q3.12)   */
 /* -------------------------------------------------------------------------- */
-void rotate_y(int16_t *m, float angle_radians)
+void rotate_y(int16_t *m, int angle_id)
 {
 	int16_t cos_a;
 	int16_t sin_a;
@@ -143,9 +146,13 @@ void rotate_y(int16_t *m, float angle_radians)
 	/* 1. Ustawiamy macierz jednostkową */
 	identity(m);
 
-	/* 2. Liczymy wartości trygonometryczne */
+	/* 2. Liczymy wartości trygonometryczne 
 	cos_a = (int16_t)(cos(angle_radians) * FIX_ONE);
 	sin_a = (int16_t)(sin(angle_radians) * FIX_ONE);
+	*/
+
+	sin_a = SIN_LUT(angle_id);
+	cos_a = COS_LUT(angle_id);
 
 	/* 3. Nadpisujemy konkretne komórki bezpośrednio ich numerami w pamięci */
 	m[0] = cos_a;   /* Wiersz 0, Kolumna 0 */
@@ -198,4 +205,18 @@ void scale(int16_t *m, int16_t sx, int16_t sy, int16_t sz)
 	m[0] = sx;
 	m[4] = sy;
 	m[8] = sz;
+}
+
+void math3d_initialize_sin_lut(void)
+{
+	int i;
+	double angle;
+
+	/* wypelnij wartosciami Q3.12 */
+	for (i = 0; i < LUT_SIZE; i++) {
+		angle = (2.0 * PI * i) / LUT_SIZE;
+
+		sin_lut[i] = (int16_t)(sin(angle) * FIX_ONE);
+		cos_lut[i] = (int16_t)(cos(angle) * FIX_ONE);
+	}
 }

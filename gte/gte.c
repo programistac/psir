@@ -1,5 +1,4 @@
 #include "gte.h"
-#include "../math/math3d.h"
 
 #include <assert.h>
 #include <stddef.h> /* NULL */
