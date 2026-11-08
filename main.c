@@ -53,19 +53,19 @@ int main(int argc,char *argv[])
 	/* Przednia sciana: Z = */
 	struct gpu_vertex vb0 = {
 		 /* x y z r g b a u v pid idi mode */ 
-		-32768, -32768, 30000, 255, 0, 0, 255, 0, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		-32768, -32768, 30000, 255, 0, 0, 255, 0, 0, 1, 1, GPU_RENDER_FLAT
 	};
 
 	struct gpu_vertex vb1 = {
-		32767, -32768, 30000, 255, 0, 0, 255, 255, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		32767, -32768, 30000, 0, 255, 0, 255, 255, 0, 1, 1, GPU_RENDER_FLAT
 	};
 
 	struct gpu_vertex vb2 = {
-		32767,  32767, 30000, 0, 0, 255, 255, 255, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT 
+		32767,  32767, 30000, 0, 0, 255, 255, 255, 255, 1, 1, GPU_RENDER_FLAT 
 	};
 
 	struct gpu_vertex vb3 = {
-		-32768,  32767, 30000, 255, 0, 0, 255, 0, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		-32768,  32767, 30000, 255, 0, 0, 255, 0, 255, 1, 1, GPU_RENDER_FLAT
 	};
 
 	
@@ -110,7 +110,7 @@ int main(int argc,char *argv[])
 		-4096,  4096,  4096, 0, 0, 255, 255, 255, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
 	};
 	
-	  /* Uciszenie kompilatora - informujemy, że świadomie ich nie używamy */
+	  /* Uciszenie kompilatora - informuje, że świadomie ich nie używamy */
         (void)argc;
         (void)argv;
 
@@ -131,67 +131,67 @@ int main(int argc,char *argv[])
 	   Load palette and indexed image 0
 	   ========================================= */
 
-    texture_load_clut_png_extract_palette(
-        &palettes,
-        "assets/clut.png"
-    );
+	texture_load_clut_png_extract_palette(
+		&palettes,
+		"assets/clut.png"
+	);
 
-    texture_load_clut_png_extract_indices(
-        &image,
-        "assets/clut.png"
-    );
+	texture_load_clut_png_extract_indices(
+		&image,
+		"assets/clut.png"
+	);
 
-    /* All indexed textures must have the same dimensions. */
-    texture_width = image.width;
-    texture_height = image.height;
+	/* All indexed textures must have the same dimensions. */
+	texture_width = image.width;
+	texture_height = image.height;
 
     /* -------------------------------------------------
        Create texture array.
        Two layers = two indexed textures.
        ------------------------------------------------- */
 
-    texture_clut_indexed_atlas_create(
-        &textures,
-        texture_width,
-        texture_height,
-        2
-    );
+	texture_clut_indexed_atlas_create(
+		&textures,
+		texture_width,
+		texture_height,
+		2
+	);
 
-    texture_clut_indexed_atlas_upload_layer(
-        &textures,
-        0,
-        &image
-    );
+	texture_clut_indexed_atlas_upload_layer(
+		&textures,
+		0,
+		&image
+	);
 
-    texture_clut_indexed_image_destroy(&image);
+	texture_clut_indexed_image_destroy(&image);
 
-    /* -------------------------------------------------
-       Load palette and indexed image 1
-       ------------------------------------------------- */
+	/* -------------------------------------------------
+	Load palette and indexed image 1
+	------------------------------------------------- */
 
-    texture_load_clut_png_extract_palette(
-        &palettes,
-        "assets/clut2.png"
-    );
+	texture_load_clut_png_extract_palette(
+		&palettes,
+		"assets/clut2.png"
+	);
 
-    texture_load_clut_png_extract_indices(
-        &image,
-        "assets/clut2.png"
-    );
+	texture_load_clut_png_extract_indices(
+		&image,
+		"assets/clut2.png"
+	);
 
-    texture_clut_indexed_atlas_upload_layer(
-        &textures,
-        1,
-        &image
-    );
+	texture_clut_indexed_atlas_upload_layer(
+		&textures,
+		1,
+		&image
+	);
 
-    texture_clut_indexed_image_destroy(&image);
+	texture_clut_indexed_image_destroy(&image);
 
     /* -------------------------------------------------
        Upload palette atlas to GPU.
        ------------------------------------------------- */
 
-    texture_clut_palette_atlas_upload(&palettes);
+	texture_clut_palette_atlas_upload(&palettes);
 
 
 	glEnable(GL_DEPTH_TEST);
