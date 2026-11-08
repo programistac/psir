@@ -28,6 +28,9 @@ struct gpu_vertex {
 	uint8_t r, g, b, a; /* Kolor */
 	uint8_t u, v; /* Pozycja Textury */
 
+	uint16_t texture_layer;
+	uint16_t palette_id;
+
 	enum gpu_render_modes render_mode;
 
 	/* wyrownanie 6 4 2 4 = 16 jest ok!  */
@@ -66,6 +69,8 @@ enum attrib_ids {
 	ATTRIB_COLOR,
 	ATTRIB_TEXTURE,
 	ATTRIB_RENDER_MODE,
+	ATTRIB_TEXTURE_LAYER,
+	ATTRIB_PALETTE_ID,
 	ATTRIB_NUM
 };
 

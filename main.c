@@ -27,10 +27,14 @@ int main(int argc,char *argv[])
 	struct gpu_data gpu = { 0 };
 	struct renderer renderer = { 0 };
 	struct gte_transform trojkat = { 0 };
+	struct gte_transform background_transform = { 0 };
 	
 	unsigned int program;
-	struct texture_clut_palette_atlas texture_atlas;
-	struct texture_clut_indexed_image texture_image;
+	struct texture_clut_palette_atlas palettes = {0};
+	struct texture_clut_indexed_atlas textures = {0};
+	struct texture_clut_indexed_image image = {0};
+	unsigned int texture_width;
+	unsigned int texture_height;
 
 	int frame_angle;
 	int rotation_velocity; /* kierunek i predkosc obrotu */
@@ -40,6 +44,32 @@ int main(int argc,char *argv[])
 	struct gpu_vertex b;
 	struct gpu_vertex c;
 	
+	
+	
+	/* =========================================
+	   Wierzcholki lokalne kwadratu
+	   ========================================= */
+
+	/* Przednia sciana: Z = -1 
+	struct gpu_vertex vb0 = {
+		 x y z r g b a u v mode 
+		-32768, -32768, 0, 255, 0, 0, 255, 0, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
+	};
+
+	struct gpu_vertex vb1 = {
+		32767, -32768, 0, 255, 0, 0, 255, 255, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
+	};
+
+	struct gpu_vertex vb2 = {
+		32767,  32767, 0, 0, 0, 255, 255, 255, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT 
+	};
+
+	struct gpu_vertex vb3 = {
+		-32768,  32767, 0, 255, 0, 0, 255, 0, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT
+	}; */
+
+	
+	
 	/* =========================================
 	   Wierzcholki lokalne szescianu
 	   ========================================= */
@@ -47,37 +77,37 @@ int main(int argc,char *argv[])
 	/* Przednia sciana: Z = -1 */
 	struct gpu_vertex v0 = {
 		/* x y z r g b a u v mode */
-		-4096, -4096, -4096, 255, 0, 0, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		-4096, -4096, -4096, 255, 0, 0, 255, 0, 0, 0, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v1 = {
-		4096, -4096, -4096, 255, 0, 0, 255, 255, 0, GPU_RENDER_TEXTURED_FLAT
+		4096, -4096, -4096, 255, 0, 0, 255, 255, 0, 0, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v2 = {
-		4096,  4096, -4096, 0, 0, 255, 255, 255, 255, GPU_RENDER_TEXTURED_FLAT
+		4096,  4096, -4096, 0, 0, 255, 255, 255, 255, 0, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v3 = {
-		-4096,  4096, -4096, 255, 0, 0, 255, 0, 255, GPU_RENDER_TEXTURED_FLAT
+		-4096,  4096, -4096, 255, 0, 0, 255, 0, 255, 0, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 
 	/* Tylna sciana: Z = +1 */
 	struct gpu_vertex v4 = {
-		-4096, -4096,  4096, 0, 255, 0, 255, 255, 0, GPU_RENDER_TEXTURED_FLAT
+		-4096, -4096,  4096, 0, 255, 0, 255, 255, 0, 0, 0, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v5 = {
-		4096, -4096,  4096, 0, 255, 0, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		4096, -4096,  4096, 0, 255, 0, 255, 0, 0, 0, 0, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v6 = {
-		4096,  4096,  4096, 0, 255, 0, 255, 0, 255, GPU_RENDER_TEXTURED_FLAT
+		4096,  4096,  4096, 0, 255, 0, 255, 0, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v7 = {
-		-4096,  4096,  4096, 0, 0, 255, 255, 255, 255, GPU_RENDER_TEXTURED_FLAT
+		-4096,  4096,  4096, 0, 0, 255, 255, 255, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
 	};
 	
 	  /* Uciszenie kompilatora - informujemy, że świadomie ich nie używamy */
@@ -97,10 +127,71 @@ int main(int argc,char *argv[])
 	/* =========================================
 	   LOAD TEXTURE
 	   ========================================= */
-	texture_load_clut_png_extract_indices(&texture_image, "assets/clut.png");
-	texture_load_clut_png_extract_palette(&texture_atlas, "assets/clut.png");
-	texture_clut_palette_atlas_upload(&texture_atlas);
-	texture_clut_indexed_image_upload(&texture_image);
+	 /* -------------------------------------------------
+       Load palette and indexed image 0
+       ------------------------------------------------- */
+
+    texture_load_clut_png_extract_palette(
+        &palettes,
+        "assets/clut.png"
+    );
+
+    texture_load_clut_png_extract_indices(
+        &image,
+        "assets/clut.png"
+    );
+
+    /* All indexed textures must have the same dimensions. */
+    texture_width = image.width;
+    texture_height = image.height;
+
+    /* -------------------------------------------------
+       Create texture array.
+       Two layers = two indexed textures.
+       ------------------------------------------------- */
+
+    texture_clut_indexed_atlas_create(
+        &textures,
+        texture_width,
+        texture_height,
+        2
+    );
+
+    texture_clut_indexed_atlas_upload_layer(
+        &textures,
+        0,
+        &image
+    );
+
+    texture_clut_indexed_image_destroy(&image);
+
+    /* -------------------------------------------------
+       Load palette and indexed image 1
+       ------------------------------------------------- */
+
+    texture_load_clut_png_extract_palette(
+        &palettes,
+        "assets/clut2.png"
+    );
+
+    texture_load_clut_png_extract_indices(
+        &image,
+        "assets/clut2.png"
+    );
+
+    texture_clut_indexed_atlas_upload_layer(
+        &textures,
+        1,
+        &image
+    );
+
+    texture_clut_indexed_image_destroy(&image);
+
+    /* -------------------------------------------------
+       Upload palette atlas to GPU.
+       ------------------------------------------------- */
+
+    texture_clut_palette_atlas_upload(&palettes);
 
 
 	glEnable(GL_DEPTH_TEST);
@@ -112,6 +203,13 @@ int main(int argc,char *argv[])
 	trojkat.v[1] = 0;/*-4096 - 2048 - 1024;*/
 	trojkat.v[2] = 5*FIX_ONE;
 	trojkat.is_identity = 0;
+
+
+	identity(background_transform.m);
+	background_transform.v[0] = 0;
+	background_transform.v[1] = 0;
+	background_transform.v[2] = 0;
+	background_transform.is_identity = 1;
 
 
 
@@ -128,8 +226,6 @@ int main(int argc,char *argv[])
 		platform_begin_frame(&platform);
 
 		platform_poll_events(&platform);
-
-		/*t = SDL_GetTicks()*0.001f;*/
 
 		renderer_begin(&renderer);
 		renderer_set_clear_color(&renderer, 0.05f, 0.05f, 0.1f, 1.0f);
@@ -163,6 +259,32 @@ int main(int argc,char *argv[])
 		multiply_mxm(m, s, r);
 
 		memcpy(trojkat.m, m, sizeof(m));
+		
+		/* =============================================
+		 Pre-Renderowane Tlo.				
+		
+		a = vb0;
+		b = vb1;
+		c = vb2;
+
+		if (gte_project_fullscreen(&a.x, &a.y, &a.x, &background_transform) &&
+				gte_project_fullscreen(&b.x, &b.y, &b.x, &background_transform) &&
+				gte_project_fullscreen(&c.x, &c.y, &c.x, &background_transform))
+		{
+			gpu_submit_triangle(&gpu, &a, &b, &c);
+		}
+
+		Trojkat 2 
+		a = vb0;
+		b = vb2;
+		c = vb3;
+
+		if (gte_project_fullscreen(&a.x, &a.y, &a.x, &background_transform) &&
+				gte_project_fullscreen(&b.x, &b.y, &b.x, &background_transform) &&
+				gte_project_fullscreen(&c.x, &c.y, &c.x, &background_transform))
+		{
+			gpu_submit_triangle(&gpu, &a, &b, &c);
+		}*/
 
 		/* =========================================
 		   PRZEDNIA SCIANA
@@ -348,19 +470,25 @@ int main(int argc,char *argv[])
 		{
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
+		
+		
+		
 
 
 
+		texture_clut_palette_atlas_bind(&palettes);
+texture_clut_indexed_atlas_bind(&textures);
 
+printf("Texture count: %u\n", textures.count);
+printf("Texture size: %u x %u\n",
+    textures.width, textures.height);
+printf("Palette count: %u\n", palettes.count);
 
 
 		/* =======================================================
 		   CPU -> GPU
 		   ======================================================= */
 		shader_use_program(program);
-
-		texture_clut_palette_atlas_bind(&texture_atlas);
-		texture_clut_indexed_image_bind(&texture_image);
 
 		gpu_receive_data(&gpu);
 		renderer_draw_frame(&gpu);
@@ -377,8 +505,8 @@ int main(int argc,char *argv[])
 
 		platform_end_frame(&platform);
 	}
-	texture_clut_palette_atlas_destroy(&texture_atlas);
-	texture_clut_indexed_image_destroy(&texture_image);
+	texture_clut_palette_atlas_destroy(&palettes);
+	texture_clut_indexed_atlas_destroy(&textures);
 	glUseProgram(0);
 	glDeleteProgram(program);
 	gpu_destroy(&gpu);

@@ -2,53 +2,102 @@
 #define TEXTURE_H
 
 #include <stdint.h> /* for uint16_t */
+#include <GL/glew.h>
+#include <stddef.h>
 
-#define MAX_PALETTES 4
+/*
+ * CLUT palette atlas.
+ *
+ * Every row contains one 256-color palette.
+ */
+struct texture_clut_palette_atlas
+{
+    unsigned int id;
+    unsigned int count;
 
-/* CLUT WORK VERSION */
-struct texture_clut_palette_atlas {
-	unsigned int id;
-	uint16_t palette[MAX_PALETTES][256];
-
-	int count;
+    uint16_t *palette;
 };
 
-struct texture_clut_indexed_image {
-	unsigned int id;
-	uint8_t *indices;
+/*
+ * Indexed texture array.
+ *
+ * Every layer contains one indexed texture.
+ * All layers must have identical dimensions.
+ */
+struct texture_clut_indexed_atlas
+{
+    unsigned int id;
 
-	int width;
-	int height;
-
-	int palette_id;
+    unsigned int width;
+    unsigned int height;
+    unsigned int count;
 };
 
-/* load png image extract palette and add it to atlas */
+/*
+ * CPU-side indexed image.
+ *
+ * Used as a temporary container before uploading
+ * image data into the texture array.
+ */
+struct texture_clut_indexed_image
+{
+    unsigned int width;
+    unsigned int height;
+
+    unsigned char *indices;
+};
+
+/* CLUT palette atlas */
+
 void texture_load_clut_png_extract_palette(
-		struct texture_clut_palette_atlas *t, 
-		const char *filename);
+    struct texture_clut_palette_atlas *atlas,
+    const char *filename
+);
 
-/* load png image extract indices and upload to opengl */
 void texture_load_clut_png_extract_indices(
-		struct texture_clut_indexed_image *t, 
-		const char *filename);
+    struct texture_clut_indexed_image *image,
+    const char *filename
+);
 
 void texture_clut_palette_atlas_upload(
-		struct texture_clut_palette_atlas *atlas);
-void texture_clut_indexed_image_upload(
-		struct texture_clut_indexed_image *image);
-
+    struct texture_clut_palette_atlas *atlas
+);
 
 void texture_clut_palette_atlas_bind(
-		const struct texture_clut_palette_atlas *atlas);
+    const struct texture_clut_palette_atlas *atlas
+);
 
-void texture_clut_indexed_image_bind(
-		const struct texture_clut_indexed_image *image);
-
-/* Resource cleanup and destruction */
 void texture_clut_palette_atlas_destroy(
-		struct texture_clut_palette_atlas *atlas);
+    struct texture_clut_palette_atlas *atlas
+);
+
+/* Indexed texture array */
+
+void texture_clut_indexed_atlas_create(
+    struct texture_clut_indexed_atlas *atlas,
+    unsigned int width,
+    unsigned int height,
+    unsigned int count
+);
+
+void texture_clut_indexed_atlas_upload_layer(
+    struct texture_clut_indexed_atlas *atlas,
+    unsigned int layer,
+    const struct texture_clut_indexed_image *image
+);
+
+void texture_clut_indexed_atlas_bind(
+    const struct texture_clut_indexed_atlas *atlas
+);
+
+void texture_clut_indexed_atlas_destroy(
+    struct texture_clut_indexed_atlas *atlas
+);
+
+/* CPU-side indexed image */
+
 void texture_clut_indexed_image_destroy(
-		struct texture_clut_indexed_image *image);
+    struct texture_clut_indexed_image *image
+);
 
 #endif

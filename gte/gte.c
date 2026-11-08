@@ -3,6 +3,53 @@
 #include <assert.h>
 #include <stddef.h> /* NULL */
 
+int16_t gte_project_fullscreen(
+        int16_t *out_x,
+        int16_t *out_y,
+        const int16_t *local_v,
+        const struct gte_transform *t)
+{
+	int16_t screen_v[3];
+
+	assert(out_x != NULL);
+	assert(out_y != NULL);
+	assert(local_v != NULL);
+	assert(t != NULL);
+
+	translate_v3(screen_v, local_v, t->v);
+
+	*out_x = FIX_CLAMP(screen_v[0]);
+	*out_y = FIX_CLAMP(screen_v[1]);
+
+	return 1;
+}
+
+int16_t gte_project_vertex_2d(
+        int16_t *out_x,
+        int16_t *out_y,
+        const int16_t *local_v,
+        const struct gte_transform *t, 
+	int16_t internal_w, int16_t internal_h)
+{
+	int16_t screen_v[3];
+	int32_t x_proj, y_proj;
+
+	assert(out_x != NULL);
+	assert(out_y != NULL);
+	assert(local_v != NULL);
+	assert(t != NULL);
+
+	translate_v3(screen_v, local_v, t->v);
+
+	x_proj = (((int32_t)screen_v[0] * internal_h) / internal_w);                
+	y_proj = screen_v[1];
+
+	*out_x = FIX_CLAMP(x_proj);
+	*out_y = FIX_CLAMP(y_proj);
+
+	return 1;
+}
+
 int16_t gte_project_vertex_3d(
 		int16_t *out_x, int16_t *out_y, int16_t *out_z,
                 const int16_t *local_v, const struct gte_transform *t, 

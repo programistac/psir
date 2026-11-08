@@ -28,4 +28,18 @@ int16_t gte_project_vertex_3d(
 		int16_t *out_x, int16_t *out_y, int16_t *out_z, 
 		const int16_t *local_v, const struct gte_transform *t, 
 		int16_t internal_w, int16_t internal_h);
+
+int16_t gte_project_fullscreen(
+        int16_t *out_x,
+        int16_t *out_y,
+        const int16_t *local_v,
+        const struct gte_transform *t);
+
+int16_t gte_project_vertex_2d(
+        int16_t *out_x,
+        int16_t *out_y,
+        const int16_t *local_v,
+        const struct gte_transform *t, 
+	int16_t internam_w, int16_t internal_h);
+
 #endif

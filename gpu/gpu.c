@@ -150,6 +150,52 @@ void gpu_create(struct gpu_data *data)
 		ATTRIB_RENDER_MODE,
 		0
 	);
+
+	/* ===========================================================
+   Texture Layer
+   =========================================================== */
+
+glEnableVertexArrayAttrib(
+    data->vaos[VAO_DATA],
+    ATTRIB_TEXTURE_LAYER
+);
+
+glVertexArrayAttribIFormat(
+    data->vaos[VAO_DATA],
+    ATTRIB_TEXTURE_LAYER,
+    1,
+    GL_UNSIGNED_SHORT,
+    offsetof(struct gpu_vertex, texture_layer)
+);
+
+glVertexArrayAttribBinding(
+    data->vaos[VAO_DATA],
+    ATTRIB_TEXTURE_LAYER,
+    0
+);
+
+/* ===========================================================
+   Palette ID
+   =========================================================== */
+
+glEnableVertexArrayAttrib(
+    data->vaos[VAO_DATA],
+    ATTRIB_PALETTE_ID
+);
+
+glVertexArrayAttribIFormat(
+    data->vaos[VAO_DATA],
+    ATTRIB_PALETTE_ID,
+    1,
+    GL_UNSIGNED_SHORT,
+    offsetof(struct gpu_vertex, palette_id)
+);
+
+glVertexArrayAttribBinding(
+    data->vaos[VAO_DATA],
+    ATTRIB_PALETTE_ID,
+    0
+);
 }
 
 void gpu_receive_data(struct gpu_data *data)
