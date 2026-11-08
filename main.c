@@ -50,23 +50,23 @@ int main(int argc,char *argv[])
 	   Wierzcholki lokalne kwadratu
 	   ========================================= */
 
-	/* Przednia sciana: Z = -1 
+	/* Przednia sciana: Z = */
 	struct gpu_vertex vb0 = {
-		 x y z r g b a u v mode 
-		-32768, -32768, 0, 255, 0, 0, 255, 0, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		 /* x y z r g b a u v pid idi mode */ 
+		-32768, -32768, 30000, 255, 0, 0, 255, 0, 0, 0, 0, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex vb1 = {
-		32767, -32768, 0, 255, 0, 0, 255, 255, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		32767, -32768, 30000, 255, 0, 0, 255, 255, 0, 0, 0, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex vb2 = {
-		32767,  32767, 0, 0, 0, 255, 255, 255, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT 
+		32767,  32767, 30000, 0, 0, 255, 255, 255, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT 
 	};
 
 	struct gpu_vertex vb3 = {
-		-32768,  32767, 0, 255, 0, 0, 255, 0, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT
-	}; */
+		-32768,  32767, 30000, 255, 0, 0, 255, 0, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
+	};
 
 	
 	
@@ -76,7 +76,7 @@ int main(int argc,char *argv[])
 
 	/* Przednia sciana: Z = -1 */
 	struct gpu_vertex v0 = {
-		/* x y z r g b a u v mode */
+		/* x y z r g b a u v pid iid mode */
 		-4096, -4096, -4096, 255, 0, 0, 255, 0, 0, 0, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
@@ -127,9 +127,9 @@ int main(int argc,char *argv[])
 	/* =========================================
 	   LOAD TEXTURE
 	   ========================================= */
-	 /* -------------------------------------------------
-       Load palette and indexed image 0
-       ------------------------------------------------- */
+	/* =========================================
+	   Load palette and indexed image 0
+	   ========================================= */
 
     texture_load_clut_png_extract_palette(
         &palettes,
@@ -261,8 +261,8 @@ int main(int argc,char *argv[])
 		memcpy(trojkat.m, m, sizeof(m));
 		
 		/* =============================================
-		 Pre-Renderowane Tlo.				
-		
+		   Pre-Renderowane Tlo.				
+		   ============================================= */
 		a = vb0;
 		b = vb1;
 		c = vb2;
@@ -274,7 +274,7 @@ int main(int argc,char *argv[])
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
-		Trojkat 2 
+		/* Trojkat 2 */ 
 		a = vb0;
 		b = vb2;
 		c = vb3;
@@ -284,7 +284,7 @@ int main(int argc,char *argv[])
 				gte_project_fullscreen(&c.x, &c.y, &c.x, &background_transform))
 		{
 			gpu_submit_triangle(&gpu, &a, &b, &c);
-		}*/
+		}
 
 		/* =========================================
 		   PRZEDNIA SCIANA
