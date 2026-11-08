@@ -53,19 +53,19 @@ int main(int argc,char *argv[])
 	/* Przednia sciana: Z = */
 	struct gpu_vertex vb0 = {
 		 /* x y z r g b a u v pid idi mode */ 
-		-32768, -32768, 30000, 255, 0, 0, 255, 0, 0, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		-32768, -32768, 30000, 255, 0, 0, 255, 0, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex vb1 = {
-		32767, -32768, 30000, 255, 0, 0, 255, 255, 0, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		32767, -32768, 30000, 255, 0, 0, 255, 255, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex vb2 = {
-		32767,  32767, 30000, 0, 0, 255, 255, 255, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT 
+		32767,  32767, 30000, 0, 0, 255, 255, 255, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT 
 	};
 
 	struct gpu_vertex vb3 = {
-		-32768,  32767, 30000, 255, 0, 0, 255, 0, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		-32768,  32767, 30000, 255, 0, 0, 255, 0, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	
@@ -77,19 +77,19 @@ int main(int argc,char *argv[])
 	/* Przednia sciana: Z = -1 */
 	struct gpu_vertex v0 = {
 		/* x y z r g b a u v pid iid mode */
-		-4096, -4096, -4096, 255, 0, 0, 255, 0, 0, 0, 1, GPU_RENDER_TEXTURED_FLAT
+		-4096, -4096, -4096, 255, 0, 0, 255, 0, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v1 = {
-		4096, -4096, -4096, 255, 0, 0, 255, 255, 0, 0, 1, GPU_RENDER_TEXTURED_FLAT
+		4096, -4096, -4096, 255, 0, 0, 255, 255, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v2 = {
-		4096,  4096, -4096, 0, 0, 255, 255, 255, 255, 0, 1, GPU_RENDER_TEXTURED_FLAT
+		4096,  4096, -4096, 0, 0, 255, 255, 255, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 	struct gpu_vertex v3 = {
-		-4096,  4096, -4096, 255, 0, 0, 255, 0, 255, 0, 1, GPU_RENDER_TEXTURED_FLAT
+		-4096,  4096, -4096, 255, 0, 0, 255, 0, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT
 	};
 
 
@@ -472,17 +472,9 @@ int main(int argc,char *argv[])
 		}
 		
 		
-		
-
-
-
+		/* Bind Textures and Palettes*/
 		texture_clut_palette_atlas_bind(&palettes);
-texture_clut_indexed_atlas_bind(&textures);
-
-printf("Texture count: %u\n", textures.count);
-printf("Texture size: %u x %u\n",
-    textures.width, textures.height);
-printf("Palette count: %u\n", palettes.count);
+		texture_clut_indexed_atlas_bind(&textures);
 
 
 		/* =======================================================

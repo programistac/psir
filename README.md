@@ -135,10 +135,10 @@ Completed
     [x] Affine texture mapping
     [x] RGB555 color quantization
     [x] CLUT texture support
+    [x] Lookup-table based trigonometry (sin/cos)
 
 In Progress
 
-    [ ] Lookup-table based trigonometry (sin/cos)
     [ ] Fixed-point lighting system
     [ ] Ordering Table (OT) implementation
     [ ] Back-face culling
