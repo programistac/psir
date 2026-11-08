@@ -65,7 +65,7 @@ int main(int argc,char *argv[])
 	};
 
 	struct gpu_vertex vb3 = {
-		-32768,  32767, 30000, 255, 0, 0, 255, 0, 255, 1, 1, GPU_RENDER_FLAT
+		-32768,  32767, 30000, 255, 255, 0, 255, 0, 255, 1, 1, GPU_RENDER_FLAT
 	};
 
 	
@@ -122,7 +122,7 @@ int main(int argc,char *argv[])
 	program = create_psx_program();
 
 	renderer_initialize(&renderer, INTERNAL_W, INTERNAL_H);
-
+	renderer_log_info(&renderer);
 
 	/* =========================================
 	   LOAD TEXTURE
@@ -198,7 +198,6 @@ int main(int argc,char *argv[])
 
 	
 	/* identity(trojkat.m); */
-	/* rotate_x(trojkat.m, DEG_TO_RAD(45.0f));*/
 	trojkat.v[0] = 0;/*4096;*/
 	trojkat.v[1] = 0;/*-4096 - 2048 - 1024;*/
 	trojkat.v[2] = 5*FIX_ONE;
@@ -253,7 +252,7 @@ int main(int argc,char *argv[])
 		/* TODO: tabela z wartosciami sin/cos  */
 		/* przed przepelnieniem chroni operacja bitowa AND*/
 		frame_angle = (frame_angle + rotation_velocity) & LUT_MASK;
-		printf("kat: %i\n", frame_angle);
+		
 		rotate_y(r, frame_angle);
 
 		multiply_mxm(m, s, r);
@@ -497,6 +496,7 @@ int main(int argc,char *argv[])
 
 		platform_end_frame(&platform);
 	}
+
 	texture_clut_palette_atlas_destroy(&palettes);
 	texture_clut_indexed_atlas_destroy(&textures);
 	glUseProgram(0);

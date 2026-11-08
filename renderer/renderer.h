@@ -1,6 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include <stdio.h>
+
 #include "../gpu/framebuffer.h" /* framebuffer struct */
 #include "../gpu/gpu.h" /* gpu geometry data */
 
@@ -19,6 +21,7 @@ struct renderer {
 };
 
 void renderer_initialize(struct renderer *r, int w, int h);
+void renderer_log_info(const struct renderer *r);
 void renderer_begin(struct renderer *r);
 void renderer_end(struct renderer *r);
 
