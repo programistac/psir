@@ -56,4 +56,11 @@ void scale(int16_t *m, int16_t sx, int16_t sy, int16_t sz);
 /* Inicializacja tablic wartosci funkcji trygonometrycznych. */
 void math3d_initialize_sin_lut(void);
 
+/* Transpozycja macierzy 3x3 (zamiana wierszy z kolumnami) */
+void transpose_m(int16_t *out, const int16_t *m);
+
+/* Iloczyn skalarny dwóch wektorów 1x3 w formacie Q3.12 */
+/* Zwraca wartość w formacie Q3.12 (4096 = 1.0) */
+int16_t dot_product(const int16_t *a, const int16_t *b);
+
 #endif /* MATH3D_H */

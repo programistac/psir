@@ -43,7 +43,19 @@ int main(int argc,char *argv[])
 	struct gpu_vertex a;
 	struct gpu_vertex b;
 	struct gpu_vertex c;
-	
+
+	/* Światło padające z kierunku: prawo (+X), góra (+Y), tył (+Z) */
+	/* Długość wektora: sqrt(2365^2 + 2365^2 + 2365^2) = 4096 (1.0 w Q3.12) */
+	/* Normalne uśrednione dla rogów tylnej ściany (Z = +4096) */
+	int16_t n4[3] = { -2365, -2365, 2365 }; /* dla v4: (-X, -Y, +Z) */
+	int16_t n5[3] = {  2365, -2365, 2365 }; /* dla v5: (+X, -Y, +Z) */
+	int16_t n6[3] = {  2365,  2365, 2365 }; /* dla v6: (+X, +Y, +Z) */
+	int16_t n7[3] = { -2365,  2365, 2365 }; /* dla v7: (-X, +Y, +Z) */
+
+/* 1. Przygotowanie światła (raz na obiekt przed trójkątami!) */
+int16_t world_light[3] = { 2365, 2365, 2365 };
+int16_t local_light[3];
+int16_t inv_rot[9];	
 	
 	
 	/* =========================================
@@ -257,6 +269,11 @@ int main(int argc,char *argv[])
 		multiply_mxm(m, s, r);
 
 		memcpy(trojkat.m, m, sizeof(m));
+
+		/* Pobieramy odwrotność rotacji obiektu i przenosimy światło do przestrzeni lokalnej */
+		transpose_m(inv_rot, trojkat.m);
+		multiply_vxm(local_light, world_light, inv_rot);
+
 		
 		/* =============================================
 		   Pre-Renderowane Tlo.				
@@ -335,9 +352,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
-		        gte_apply_vertex_light(&a, 128);
-			gte_apply_vertex_light(&b, 128);
-			gte_apply_vertex_light(&c, 128);
+		        gte_apply_vertex_light(&a, gte_calc_lambert(n5, local_light, 20, 140));
+	gte_apply_vertex_light(&b, gte_calc_lambert(n4, local_light, 20, 140));
+	gte_apply_vertex_light(&c, gte_calc_lambert(n7, local_light, 20, 140));
 		
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
@@ -351,9 +368,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
-			gte_apply_vertex_light(&a, 128);
-			gte_apply_vertex_light(&b, 128);
-			gte_apply_vertex_light(&c, 128);
+			gte_apply_vertex_light(&a, gte_calc_lambert(n5, local_light, 20, 140));
+	gte_apply_vertex_light(&b, gte_calc_lambert(n7, local_light, 20, 140));
+	gte_apply_vertex_light(&c, gte_calc_lambert(n6, local_light, 20, 140));
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 

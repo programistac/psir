@@ -223,3 +223,57 @@ void math3d_initialize_sin_lut(void)
 		cos_lut[i] = (int16_t)(cos(angle) * FIX_ONE);
 	}
 }
+
+/* -------------------------------------------------------------------------- */
+/* Transpozycja macierzy 3x3 (zamiana wierszy z kolumnami)                    */
+/* Umożliwia bezpieczne wywołanie typu: transpose_m(M, M);                    */
+/* -------------------------------------------------------------------------- */
+void transpose_m(int16_t *out, const int16_t *m)
+{
+	int16_t tmp;
+
+	assert(out != NULL);
+	assert(m != NULL);
+
+	/* Przekątna główna zostaje bez zmian */
+	out[0] = m[0];
+	out[4] = m[4];
+	out[8] = m[8];
+
+	/* Zamiana elementów symetrycznych (używam tmp, by obsłużyć out == m) */
+	tmp = m[1];
+	out[1] = m[3];
+	out[3] = tmp;
+
+	tmp = m[2];
+	out[2] = m[6];
+	out[6] = tmp;
+
+	tmp = m[5];
+	out[5] = m[7];
+	out[7] = tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Iloczyn skalarny dwóch wektorów 1x3 w formacie Q3.12                       */
+/* Zwraca wartość w formacie Q3.12 (4096 = 1.0)                               */
+/* -------------------------------------------------------------------------- */
+int16_t dot_product(const int16_t *a, const int16_t *b)
+{
+	int32_t sum;
+
+	assert(a != NULL);
+	assert(b != NULL);
+
+	/* Rzutowanie na int32_t chroni przed przepełnieniem przy mnożeniu */
+	sum = ((int32_t)a[0] * b[0]) +
+	      ((int32_t)a[1] * b[1]) +
+	      ((int32_t)a[2] * b[2]);
+
+	/* Powrót z formatu Q24 (12 + 12 bitów po przecinku) do Q12 */
+	sum >>= FIX_SHIFT;
+
+	return FIX_CLAMP(sum);
+}
+
+

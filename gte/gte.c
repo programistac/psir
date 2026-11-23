@@ -105,4 +105,34 @@ void gte_apply_vertex_light(struct gpu_vertex *v, uint8_t light)
 	v->b = (b > 255) ? 255 : (uint8_t)b;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Oblicza jasność Lamberta w skali PSX (128 = 1.0, <128 = cień, >128 = overbright) */
+/* normal: znormalizowany wektor wierzchołka (Q3.12)                          */
+/* light_dir: wektor DO źródła światła w przestrzeni obiektu (Q3.12)          */
+/* ambient: bazowe oświetlenie otoczenia (np. 32 = 25% jasności)              */
+/* intensity: moc światła kierunkowego (np. 128 = 100%, 192 = 150% overbright)*/
+/* -------------------------------------------------------------------------- */
+uint8_t gte_calc_lambert(const int16_t *normal, const int16_t *light_dir,
+                         uint8_t ambient, uint8_t intensity)
+{
+	int16_t dot;
+	int32_t light;
+
+	assert(normal != NULL);
+	assert(light_dir != NULL);
+
+	/* 1. Iloczyn skalarny w Q3.12 (4096 = 1.0) */
+	dot = dot_product(normal, light_dir);
+
+	/* 2. Jeśli światło pada od tyłu, zostaje tylko ambient */
+	if (dot <= 0) {
+		return ambient;
+	}
+
+	/* 3. Skalujemy moc światła przez cosinus kąta (Q12 -> skala 0..255) */
+	light = ambient + (((int32_t)dot * intensity) >> FIX_SHIFT);
+
+	/* 4. Przycinamy do uint8_t (255 = prawie 2x overbright przy >> 7) */
+	return (light > 255) ? 255 : (uint8_t)light;
+}
 
