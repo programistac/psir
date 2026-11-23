@@ -84,7 +84,26 @@ const char *psx_fragment_shader_source =
     "    }\n"
     "    else if (vertex_render_mode == 3u)\n"
     "    {\n"
-    "        FragColor = vertex_color;\n"
+    "        ivec2 tex_size = textureSize(uIndexTex, 0).xy;\n"
+
+    "        ivec2 texel = ivec2(vertex_uv * vec2(tex_size));\n"
+    "        texel = clamp(texel, ivec2(0), tex_size - ivec2(1));\n"
+
+    "        uint index = texelFetch(\n"
+    "            uIndexTex,\n"
+    "            ivec3(texel, int(vertex_texture_layer)),\n"
+    "            0\n"
+    "        ).r;\n"
+
+    "        vec4 tex_color = texelFetch(\n"
+    "            uPaletteTex,\n"
+    "            ivec2(int(index), int(vertex_palette_id)),\n"
+    "            0\n"
+    "        );\n"
+
+    "        vec3 lit_rgb = clamp(tex_color.rgb * (vertex_color.rgb * 2.0), 0.0, 1.0);\n"
+
+    "        FragColor = vec4(lit_rgb, tex_color.a * vertex_color.a);\n"
     "    }\n"
     "}\n";
 

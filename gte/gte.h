@@ -2,6 +2,7 @@
 #define GTE_H
 
 #include "../math/math3d.h"
+#include "../gpu/gpu.h"
 
 #include <stdint.h>
 
@@ -41,5 +42,7 @@ int16_t gte_project_vertex_2d(
         const int16_t *local_v,
         const struct gte_transform *t, 
 	int16_t internam_w, int16_t internal_h);
+
+void gte_apply_vertex_light(struct gpu_vertex *v, uint8_t light);
 
 #endif

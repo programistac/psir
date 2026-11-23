@@ -238,7 +238,7 @@ void renderer_present(struct renderer *r, int w, int h)
 	float screenAspect;
 	int dstW, dstH, dstX, dstY;
 
-	targetAspect = 4.0f / 3.0f;
+	targetAspect = 2.0f / 1.0f;
 	screenAspect = (float)w / (float)h;
 
 	if (screenAspect > targetAspect) {

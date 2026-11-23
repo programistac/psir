@@ -17,8 +17,8 @@
 #define WIN_W 1280
 #define WIN_H 720
 
-#define INTERNAL_W 320
-#define INTERNAL_H 240
+#define INTERNAL_W 512 /* 512x256 w Tomb Raider3 */
+#define INTERNAL_H 256 /* 240 = NTSC 256 = PAL*/
 
 
 int main(int argc,char *argv[])
@@ -65,7 +65,7 @@ int main(int argc,char *argv[])
 	};
 
 	struct gpu_vertex vb3 = {
-		-32768,  32767, 30000, 255, 255, 0, 255, 0, 255, 1, 1, GPU_RENDER_FLAT
+		-32768,  32767, 30000, 0, 0, 100, 255, 0, 255, 1, 1, GPU_RENDER_FLAT
 	};
 
 	
@@ -77,37 +77,37 @@ int main(int argc,char *argv[])
 	/* Przednia sciana: Z = -1 */
 	struct gpu_vertex v0 = {
 		/* x y z r g b a u v pid iid mode */
-		-4096, -4096, -4096, 255, 0, 0, 255, 0, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		-4096, -4096, -4096, 128, 128, 128, 255, 0, 0, 1, 1, GPU_RENDER_TEXTURED_GOURAUD
 	};
 
 	struct gpu_vertex v1 = {
-		4096, -4096, -4096, 255, 0, 0, 255, 255, 0, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		4096, -4096, -4096, 128, 128, 128, 255, 255, 0, 1, 1, GPU_RENDER_TEXTURED_GOURAUD
 	};
 
 	struct gpu_vertex v2 = {
-		4096,  4096, -4096, 0, 0, 255, 255, 255, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		4096,  4096, -4096, 128, 128, 128, 255, 255, 255, 1, 1, GPU_RENDER_TEXTURED_GOURAUD
 	};
 
 	struct gpu_vertex v3 = {
-		-4096,  4096, -4096, 255, 0, 0, 255, 0, 255, 1, 1, GPU_RENDER_TEXTURED_FLAT
+		-4096,  4096, -4096, 128, 128, 128, 255, 0, 255, 1, 1, GPU_RENDER_TEXTURED_GOURAUD
 	};
 
 
 	/* Tylna sciana: Z = +1 */
 	struct gpu_vertex v4 = {
-		-4096, -4096,  4096, 0, 255, 0, 255, 255, 0, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		-4096, -4096,  4096, 128, 128, 128, 255, 255, 0, 0, 0, GPU_RENDER_TEXTURED_GOURAUD
 	};
 
 	struct gpu_vertex v5 = {
-		4096, -4096,  4096, 0, 255, 0, 255, 0, 0, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		4096, -4096,  4096, 128, 128, 128, 255, 0, 0, 0, 0, GPU_RENDER_TEXTURED_GOURAUD
 	};
 
 	struct gpu_vertex v6 = {
-		4096,  4096,  4096, 0, 255, 0, 255, 0, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		4096,  4096,  4096, 128, 128, 128, 255, 0, 255, 0, 0, GPU_RENDER_TEXTURED_GOURAUD
 	};
 
 	struct gpu_vertex v7 = {
-		-4096,  4096,  4096, 0, 0, 255, 255, 255, 255, 0, 0, GPU_RENDER_TEXTURED_FLAT
+		-4096,  4096,  4096, 128, 128, 128, 255, 255, 255, 0, 0, GPU_RENDER_TEXTURED_GOURAUD
 	};
 	
 	  /* Uciszenie kompilatora - informuje, że świadomie ich nie używamy */
@@ -217,7 +217,6 @@ int main(int argc,char *argv[])
 	rotation_velocity = -2;
 
 	while(platform.running) {
-	       /* float t;*/
 	        int16_t s[9];
 		int16_t r[9];
 		int16_t m[9];
@@ -298,6 +297,11 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 0);
+			gte_apply_vertex_light(&b, 0);
+			gte_apply_vertex_light(&c, 96);
+
+
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -310,6 +314,10 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 0);
+			gte_apply_vertex_light(&b, 96);
+			gte_apply_vertex_light(&c, 0);
+
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -327,6 +335,10 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+		        gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
+		
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -339,6 +351,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -356,6 +371,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -368,6 +386,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -385,6 +406,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -397,6 +421,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -420,6 +447,10 @@ int main(int argc,char *argv[])
 			b.v = 0;
 			c.u = 255;
 			c.v = 255;
+			
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -438,6 +469,10 @@ int main(int argc,char *argv[])
 			b.v = 255;
 			c.u = 0;
 			c.v = 255;
+			
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -455,6 +490,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -467,6 +505,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
+			gte_apply_vertex_light(&a, 128);
+			gte_apply_vertex_light(&b, 128);
+			gte_apply_vertex_light(&c, 128);
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 		
@@ -487,7 +528,7 @@ int main(int argc,char *argv[])
 		renderer_end(&renderer);
 
 		/* SDL_GetWindowSize(platform.window, &screenW, &screenH); */
-
+		/* TODO: przeniesc Viewport...*/
 		glViewport(0, 0, platform.window_w, platform.window_h);
 
 		renderer_set_clear_color(&renderer, 0.0f, 0.0f, 0.0f, 1.0f);

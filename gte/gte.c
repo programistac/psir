@@ -93,3 +93,16 @@ int16_t gte_project_vertex_3d(
         return 1;
 
 }
+
+void gte_apply_vertex_light(struct gpu_vertex *v, uint8_t light)
+{
+	uint16_t r = (v->r * light) >> 7;
+	uint16_t g = (v->g * light) >> 7;
+	uint16_t b = (v->b * light) >> 7;
+
+	v->r = (r > 255) ? 255 : (uint8_t)r;
+	v->g = (g > 255) ? 255 : (uint8_t)g;
+	v->b = (b > 255) ? 255 : (uint8_t)b;
+}
+
+
