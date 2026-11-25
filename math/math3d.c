@@ -276,4 +276,102 @@ int16_t dot_product(const int16_t *a, const int16_t *b)
 	return FIX_CLAMP(sum);
 }
 
+/* -------------------------------------------------------------------------- */
+/* Pomocniczy całkowitoliczbowy pierwiastek kwadratowy (32-bit -> 16-bit)      */
+/* -------------------------------------------------------------------------- */
+uint16_t isqrt32(uint32_t n)
+{
+	uint32_t root = 0;
+	uint32_t bit = (uint32_t)1 << 30; /* Najwyższa potęga 4 mieszcząca się w uint32_t */
 
+	while (bit > n) {
+		bit >>= 2;
+	}
+
+	while (bit != 0) {
+		if (n >= root + bit) {
+			n -= root + bit;
+			root = (root >> 1) + bit;
+		} else {
+			root >>= 1;
+		}
+		bit >>= 2;
+	}
+
+	return (uint16_t)root;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Długość wektora 1x3 w formacie Q3.12                                       */
+/* Zwraca długość w formacie Q3.12 (np. 4096 = 1.0)                           */
+/* -------------------------------------------------------------------------- */
+int16_t length_v3(const int16_t *v)
+{
+	uint64_t sq_sum;
+	uint16_t len;
+
+	assert(v != NULL);
+
+	/* Suma kwadratów w Q24 (bezpieczna do składowych ok. +-26000, czyli +-6.3 w Q3.12) */
+	sq_sum = (uint64_t)((int64_t)v[0] * v[0]) +
+	         (uint64_t)((int64_t)v[1] * v[1]) +
+	         (uint64_t)((int64_t)v[2] * v[2]);
+
+	/* Pierwiastek z liczby Q24 automatycznie daje wynik w Q12! */
+	len = (uint32_t)isqrt32(sq_sum);
+
+	/* return FIX_CLAMP((int32_t)len); -- ERROR? */
+	return (len > 32767) ? 32767 : (int16_t)len;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Normalizacja wektora 1x3 (zamiana na wektor jednostkowy o długości 4096)   */
+/* Umożliwia bezpieczne wywołanie typu: normalize_v3(v, v);                   */
+/* -------------------------------------------------------------------------- */
+void normalize_v3(int16_t *out, const int16_t *v)
+{
+	int16_t len;
+	int i;
+
+	assert(out != NULL);
+	assert(v != NULL);
+
+	len = length_v3(v);
+
+	/* Zabezpieczenie przed dzieleniem przez zero dla wektora zerowego */
+	if (len == 0) {
+		out[0] = 0;
+		out[1] = 0;
+		out[2] = 0;
+		return;
+	}
+
+	/* Dzielenie w Q3.12: przesuwamy licznik o FIX_SHIFT (12 bitów) w lewo */
+	for (i = 0; i < 3; i++) {
+		int32_t scaled = ((int32_t)v[i] << FIX_SHIFT) / len;
+		out[i] = FIX_CLAMP(scaled);
+	}
+}
+
+/* -------------------------------------------------------------------------- */
+/* Odejmowanie dwóch wektorów 1x3 (out = a - b)                               */
+/* Umożliwia bezpieczne wywołanie typu: sub_v3(v, v, target);                 */
+/* -------------------------------------------------------------------------- */
+void sub_v3(int16_t *out, const int16_t *a, const int16_t *b)
+{
+	int16_t result[3];
+	int i = 0;
+
+	assert(out != NULL);
+	assert(a != NULL);
+	assert(b != NULL);
+
+	for (i = 0; i < 3; i++) {
+		int32_t diff = (int32_t)a[i] - b[i];
+		result[i] = FIX_CLAMP(diff);
+	}
+
+	for (i = 0; i < 3; i++) {
+		out[i] = result[i];
+	}
+}

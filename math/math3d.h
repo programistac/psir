@@ -62,5 +62,13 @@ void transpose_m(int16_t *out, const int16_t *m);
 /* Iloczyn skalarny dwóch wektorów 1x3 w formacie Q3.12 */
 /* Zwraca wartość w formacie Q3.12 (4096 = 1.0) */
 int16_t dot_product(const int16_t *a, const int16_t *b);
+/* Całkowitoliczbowy pierwiastek kwadratowy */
+uint16_t isqrt32(uint32_t n);
+/* Długość wektora 1x3 w formacie Q3.12 */
+int16_t length_v3(const int16_t *v);
+/* Zamiana na wektor jednostkowy */
+void normalize_v3(int16_t *out, const int16_t *v);
+/* Odejmowanie dwóch wektorów 1x3 (out = a - b) */
+void sub_v3(int16_t *out, const int16_t *a, const int16_t *b);
 
 #endif /* MATH3D_H */

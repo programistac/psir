@@ -52,10 +52,12 @@ int main(int argc,char *argv[])
 	int16_t n6[3] = {  2365,  2365, 2365 }; /* dla v6: (+X, +Y, +Z) */
 	int16_t n7[3] = { -2365,  2365, 2365 }; /* dla v7: (-X, +Y, +Z) */
 
-/* 1. Przygotowanie światła (raz na obiekt przed trójkątami!) */
-int16_t world_light[3] = { 2365, 2365, 2365 };
-int16_t local_light[3];
-int16_t inv_rot[9];	
+	/* 1. Przygotowanie światła (raz na obiekt przed trójkątami!) */
+	int16_t world_light[3] = { 2365, 2365, 2365 }; /* directional light */ 
+	int16_t to_light[3];
+	int16_t light_pos[3] = {0, 0, 0};
+	int16_t local_light[3];
+	int16_t inv_rot[9];	
 	
 	
 	/* =========================================
@@ -210,7 +212,7 @@ int16_t inv_rot[9];
 
 	
 	/* identity(trojkat.m); */
-	trojkat.v[0] = 0;/*4096;*/
+	trojkat.v[0] = -2*FIX_ONE;/*4096;*/
 	trojkat.v[1] = 0;/*-4096 - 2048 - 1024;*/
 	trojkat.v[2] = 5*FIX_ONE;
 	trojkat.is_identity = 0;
@@ -270,8 +272,25 @@ int16_t inv_rot[9];
 
 		memcpy(trojkat.m, m, sizeof(m));
 
+		/* wylicz kierunek swiatla */
+		sub_v3(to_light, light_pos, trojkat.v);
+		normalize_v3(world_light, to_light); 
+
 		/* Pobieramy odwrotność rotacji obiektu i przenosimy światło do przestrzeni lokalnej */
 		transpose_m(inv_rot, trojkat.m);
+	
+		/* -------------------------------------------------------------------------- */
+		/* ZASADA PRZENOSZENIA SWIATLA DO PRZESTRZENI LOKALNEJ OBIEKTU:               */
+		/*                                                                            */
+		/* 1. Tryb Per-Object (szybki, styl PSX GTE - wspolny kierunek dla bryly):    */
+		/*    Normalizujemy wektor OD RAZU (dlugosc = 4096) przed multiply_vxm(),     */
+		/*    poniewaz przenosimy sam KIERUNEK padania promieni.                      */
+		/*                                                                            */
+		/* 2. Tryb Per-Vertex (dokladny Point Light / latarka):                       */
+		/*    Przenosimy NIEZNORMALIZOWANY wektor (light_pos - obj_pos), aby          */
+		/*    zachowac prawdziwa POZYCJE i odleglosc zrodla swiatla. Normalizujemy    */
+		/*    dopiero dla kazdego wierzcholka po odjeciu jego pozycji (local - v).    */
+		/* -------------------------------------------------------------------------- */
 		multiply_vxm(local_light, world_light, inv_rot);
 
 		
@@ -373,7 +392,6 @@ int16_t inv_rot[9];
 	gte_apply_vertex_light(&c, gte_calc_lambert(n6, local_light, 20, 140));
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
-
 
 		/* =========================================
 		   LEWA SCIANA
