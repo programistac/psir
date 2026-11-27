@@ -14,7 +14,8 @@ SOURCES := \
 	gpu/shader.c \
 	gpu/framebuffer.c \
 	gpu/texture.c \
-	renderer/renderer.c
+	renderer/renderer.c \
+	gpu/postprocess.c
 
 OBJECTS := $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 

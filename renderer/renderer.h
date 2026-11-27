@@ -5,6 +5,7 @@
 
 #include "../gpu/framebuffer.h" /* framebuffer struct */
 #include "../gpu/gpu.h" /* gpu geometry data */
+#include "../gpu/postprocess.h" /* postprocess  */
 
 enum renderer_clear_flags {
 	RENDERER_CLEAR_COLOR = 1 << 0,
@@ -15,6 +16,8 @@ enum renderer_clear_flags {
 
 struct renderer {
 	struct framebuffer fb;
+	struct postprocess postprocess;
+	int postprocess_enabled;
 	int resolution_width;
 	int resolution_height;
 	float clear_color[4]; /* background rgba */
@@ -36,5 +39,7 @@ void renderer_clear(struct renderer *r, int f);
 void renderer_set_full_transparent_mode();
 void renderer_set_semi_transparent_mode();
 
+void renderer_destroy(struct renderer *r);
+void renderer_set_resolution(struct renderer *r, int w, int h);
 
 #endif

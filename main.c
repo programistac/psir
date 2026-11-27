@@ -212,7 +212,7 @@ int main(int argc,char *argv[])
 
 	
 	/* identity(trojkat.m); */
-	trojkat.v[0] = -2*FIX_ONE;/*4096;*/
+	trojkat.v[0] = 0;/*4096;*/
 	trojkat.v[1] = 0;/*-4096 - 2048 - 1024;*/
 	trojkat.v[2] = 5*FIX_ONE;
 	trojkat.is_identity = 0;
@@ -238,6 +238,13 @@ int main(int argc,char *argv[])
 		platform_begin_frame(&platform);
 
 		platform_poll_events(&platform);
+		/* Obsluga wejscia oparta na stanie klatki 
+		 * (bez bezposredniego dotykania SDL_Event) 
+		 */
+		if (platform_key_pressed(&platform, SDL_SCANCODE_F1)) {
+			renderer.postprocess_enabled = 
+				!renderer.postprocess_enabled;
+		}
 
 		renderer_begin(&renderer);
 		renderer_set_clear_color(&renderer, 0.05f, 0.05f, 0.1f, 1.0f);
@@ -335,7 +342,7 @@ int main(int argc,char *argv[])
 		{
 			gte_apply_vertex_light(&a, 0);
 			gte_apply_vertex_light(&b, 0);
-			gte_apply_vertex_light(&c, 96);
+			gte_apply_vertex_light(&c, 200);
 
 
 			gpu_submit_triangle(&gpu, &a, &b, &c);
@@ -351,7 +358,7 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 0);
-			gte_apply_vertex_light(&b, 96);
+			gte_apply_vertex_light(&b, 200);
 			gte_apply_vertex_light(&c, 0);
 
 			gpu_submit_triangle(&gpu, &a, &b, &c);
@@ -371,9 +378,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
-		        gte_apply_vertex_light(&a, gte_calc_lambert(n5, local_light, 20, 140));
-	gte_apply_vertex_light(&b, gte_calc_lambert(n4, local_light, 20, 140));
-	gte_apply_vertex_light(&c, gte_calc_lambert(n7, local_light, 20, 140));
+		        gte_apply_vertex_light(&a, gte_calc_lambert(n5, local_light, 20, 255));
+	gte_apply_vertex_light(&b, gte_calc_lambert(n4, local_light, 20, 255));
+	gte_apply_vertex_light(&c, gte_calc_lambert(n7, local_light, 20, 255));
 		
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
@@ -387,9 +394,9 @@ int main(int argc,char *argv[])
 				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
 				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
 		{
-			gte_apply_vertex_light(&a, gte_calc_lambert(n5, local_light, 20, 140));
-	gte_apply_vertex_light(&b, gte_calc_lambert(n7, local_light, 20, 140));
-	gte_apply_vertex_light(&c, gte_calc_lambert(n6, local_light, 20, 140));
+			gte_apply_vertex_light(&a, gte_calc_lambert(n5, local_light, 20, 255));
+	gte_apply_vertex_light(&b, gte_calc_lambert(n7, local_light, 20, 255));
+	gte_apply_vertex_light(&c, gte_calc_lambert(n6, local_light, 20, 255));
 			gpu_submit_triangle(&gpu, &a, &b, &c);
 		}
 
@@ -578,7 +585,7 @@ int main(int argc,char *argv[])
 	glUseProgram(0);
 	glDeleteProgram(program);
 	gpu_destroy(&gpu);
-	framebuffer_destroy(&renderer.fb);
+	renderer_destroy(&renderer);
 	platform_shutdown(&platform);
 
 	return 0;

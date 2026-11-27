@@ -20,5 +20,5 @@ void framebuffer_bind(struct framebuffer *fb);
 void framebuffer_unbind(void);
 void framebuffer_destroy(struct framebuffer *fb);
 void framebuffer_blit_to_screen(struct framebuffer *fb, int dst_x, int dst_y, int dst_w, int dst_h);
-
+void framebuffer_resize(struct framebuffer *fb, int width, int height);
 #endif

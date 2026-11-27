@@ -25,6 +25,10 @@ struct platform_sdl
 
 	Uint64 perf_freq;
 	Uint64 frame_start;
+
+	/* Stan klawiatury dla obecnej i poprzedniej klatki */
+	unsigned char keys_current[SDL_NUM_SCANCODES];
+	unsigned char keys_previous[SDL_NUM_SCANCODES];
 };
 
 int  platform_initialize(
@@ -42,5 +46,10 @@ void platform_begin_frame(struct platform_sdl* p);
 void platform_end_frame(struct platform_sdl* p);
 
 void platform_poll_events(struct platform_sdl* p);
+
+/* Funkcje do odczytu stanu z dowolnego miejsca, gdzie masz wskaznik p */
+int platform_key_down(const struct platform_sdl *p, SDL_Scancode key);
+int platform_key_pressed(const struct platform_sdl *p, SDL_Scancode key);
+int platform_key_released(const struct platform_sdl *p, SDL_Scancode key);
 
 #endif

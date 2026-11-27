@@ -1,5 +1,6 @@
 #include "platform_sdl.h"
 #include <assert.h>
+#include <string.h>
 
 #include <GL/glew.h>
 
@@ -195,6 +196,9 @@ void platform_poll_events(struct platform_sdl* p)
 	SDL_Event e;
 	assert(p != NULL);
 
+	/* 1. Zapamietaj stan klawiszy z poprzedniej klatki */
+	memcpy(p->keys_previous, p->keys_current, sizeof(p->keys_current));
+
 	while (SDL_PollEvent(&e)) {
 		switch (e.type) {
 			case SDL_QUIT: {
@@ -202,39 +206,33 @@ void platform_poll_events(struct platform_sdl* p)
 			} break;
 
 			case SDL_WINDOWEVENT: {
-				/* Obsługa zmiany rozmiaru okna 
-				 * przez system operacyjny */
-				if (e.window.event == 
-						SDL_WINDOWEVENT_RESIZED || 
-				    e.window.event == 
-						SDL_WINDOWEVENT_SIZE_CHANGED) {
+				if (e.window.event == SDL_WINDOWEVENT_RESIZED || 
+				    e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 					p->window_w = e.window.data1;
 					p->window_h = e.window.data2;
-					/* Aktualizacja obszaru renderowania */
-					glViewport(
-							0, 
-							0, 
-							p->window_w, 
-							p->window_h
-					);
+					glViewport(0, 0, p->window_w, p->window_h);
 				}
 			} break;
 
 			case SDL_KEYDOWN: {
-				/* Ignoruj powtórzenia klawiszy, jeśli 
-				 * system operacyjny 
-				 * wysyła je przy przytrzymaniu */
 				if (e.key.repeat)
 					break;
+
+				/* Zapisz wcisniecie klawisza po scancode */
+				if (e.key.keysym.scancode < SDL_NUM_SCANCODES) {
+					p->keys_current[e.key.keysym.scancode] = 1;
+				}
 
 				if (e.key.keysym.sym == SDLK_ESCAPE) {
 					p->running = 0;
 				}
-				
 			} break;
 
 			case SDL_KEYUP: {
-				/* Tutaj obsługuje puszczenie klawisza */
+				/* Zapisz puszczenie klawisza */
+				if (e.key.keysym.scancode < SDL_NUM_SCANCODES) {
+					p->keys_current[e.key.keysym.scancode] = 0;
+				}
 			} break;
 			
 			default:
@@ -243,3 +241,27 @@ void platform_poll_events(struct platform_sdl* p)
 	}
 }
 
+
+int platform_key_down(const struct platform_sdl *p, SDL_Scancode key)
+{
+	assert(p != NULL);
+	if (key < 0 || key >= SDL_NUM_SCANCODES)
+		return 0;
+	return p->keys_current[key] != 0;
+}
+
+int platform_key_pressed(const struct platform_sdl *p, SDL_Scancode key)
+{
+	assert(p != NULL);
+	if (key < 0 || key >= SDL_NUM_SCANCODES)
+		return 0;
+	return p->keys_current[key] != 0 && p->keys_previous[key] == 0;
+}
+
+int platform_key_released(const struct platform_sdl *p, SDL_Scancode key)
+{
+	assert(p != NULL);
+	if (key < 0 || key >= SDL_NUM_SCANCODES)
+		return 0;
+	return p->keys_current[key] == 0 && p->keys_previous[key] != 0;
+}

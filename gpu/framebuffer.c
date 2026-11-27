@@ -119,3 +119,19 @@ void framebuffer_blit_to_screen(
                 GL_NEAREST
         );
 }
+
+/* dynamiczna rozdzielczosc */
+
+void framebuffer_resize(struct framebuffer *fb, int width, int height)
+{
+        if (fb == NULL || width <= 0 || height <= 0)
+                return;
+
+        /* Jesli rozdzielczosc jest taka sama, nic nie robimy */
+        if (fb->width == width && fb->height == height)
+                return;
+
+        framebuffer_destroy(fb);
+        framebuffer_create(fb, width, height);
+}
+

@@ -169,8 +169,14 @@ void renderer_initialize(struct renderer *r, int w, int h)
 	r->clear_color[1] = 0.0f;
 	r->clear_color[2] = 0.0f;
 	r->clear_color[3] = 1.0f;
+	r->postprocess_enabled = 0; /* domyslnie wylaczony */
 
 	framebuffer_create(&r->fb, r->resolution_width, r->resolution_height);
+
+	if (!postprocess_initialize(&r->postprocess)) {
+		assert(0 && "Postprocess initialization failed");
+		return;
+	}
 
 	/* Ustawienie domyślnego koloru czyszczenia raz na początku */
 	glClearColor(
@@ -238,6 +244,9 @@ void renderer_present(struct renderer *r, int w, int h)
 	float screenAspect;
 	int dstW, dstH, dstX, dstY;
 
+	if (w <= 0 || h <= 0)
+		return;
+
 	targetAspect = 2.0f / 1.0f;
 	screenAspect = (float)w / (float)h;
 
@@ -253,7 +262,11 @@ void renderer_present(struct renderer *r, int w, int h)
 		dstY = (h - dstH) / 2;
 	}
 
-	framebuffer_blit_to_screen(&r->fb, dstX, dstY, dstW, dstH);
+	if (r->postprocess_enabled) {
+		postprocess_draw(&r->postprocess, &r->fb, dstX, dstY, dstW, dstH);
+	} else {
+		framebuffer_blit_to_screen(&r->fb, dstX, dstY, dstW, dstH);
+	}
 }
 
 void renderer_set_full_transparent_mode(void)
@@ -265,5 +278,30 @@ void renderer_set_semi_transparent_mode(void)
 {
 	glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
 	glBlendColor(0.0f, 0.0f, 0.0f, 0.5f);
+}
+
+void renderer_destroy(struct renderer *r)
+{
+	if (r == NULL)
+		return;
+
+	postprocess_destroy(&r->postprocess);
+	framebuffer_destroy(&r->fb);
+}
+
+void renderer_set_resolution(struct renderer *r, int w, int h)
+{
+        assert(r != NULL);
+
+        if (w <= 0 || h <= 0)
+                return;
+
+        if (r->resolution_width == w && r->resolution_height == h)
+                return;
+
+        r->resolution_width = w;
+        r->resolution_height = h;
+
+        framebuffer_resize(&r->fb, w, h);
 }
 

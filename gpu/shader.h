@@ -15,7 +15,11 @@ void shader_use_program(unsigned int program);
 
 unsigned int create_psx_program(void);
 
+/* POST PROCESSING */
+extern const char *postprocess_vertex_shader_source;
+extern const char *postprocess_fragment_shader_source;
 
+unsigned int create_postprocess_program(void);
 #endif
 
 /* TODO: load shader from file */
