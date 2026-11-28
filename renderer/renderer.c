@@ -247,7 +247,7 @@ void renderer_present(struct renderer *r, int w, int h)
 	if (w <= 0 || h <= 0)
 		return;
 
-	targetAspect = 2.0f / 1.0f;
+	targetAspect = 4.0f / 3.0f; /* TR3 = 2 do 1  */
 	screenAspect = (float)w / (float)h;
 
 	if (screenAspect > targetAspect) {

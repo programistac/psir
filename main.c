@@ -17,8 +17,8 @@
 #define WIN_W 1280
 #define WIN_H 720
 
-#define INTERNAL_W 512 /* 512x256 w Tomb Raider3 */
-#define INTERNAL_H 256 /* 240 = NTSC 256 = PAL*/
+#define INTERNAL_W 320 /* 512x256 w Tomb Raider3 */
+#define INTERNAL_H 240 /* 240 = NTSC 256 = PAL*/
 
 
 int main(int argc,char *argv[])
@@ -58,7 +58,14 @@ int main(int argc,char *argv[])
 	int16_t light_pos[3] = {0, 0, 0};
 	int16_t local_light[3];
 	int16_t inv_rot[9];	
-	
+
+	/* Przygotowanie kamery */
+	struct gte_transform cam_transform = { 0 };
+	int16_t cam_yaw = 0;
+	int16_t cam_pitch = 0;
+
+	struct gte_transform view_transform  = { 0 }; /* wynikowa transformacja obiektu wzgledem kamery */
+
 	
 	/* =========================================
 	   Wierzcholki lokalne kwadratu
@@ -208,12 +215,16 @@ int main(int argc,char *argv[])
 	texture_clut_palette_atlas_upload(&palettes);
 
 
-	glEnable(GL_DEPTH_TEST);
+	/* zaimplementowane wlasne sortowanie */
+	/* glEnable(GL_DEPTH_TEST); */
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 
 	
 	/* identity(trojkat.m); */
-	trojkat.v[0] = 0;/*4096;*/
-	trojkat.v[1] = 0;/*-4096 - 2048 - 1024;*/
+	trojkat.v[0] = 0;
+	trojkat.v[1] = 0;
 	trojkat.v[2] = 5*FIX_ONE;
 	trojkat.is_identity = 0;
 
@@ -230,10 +241,21 @@ int main(int argc,char *argv[])
 	frame_angle = 0;
 	rotation_velocity = -2;
 
+	/* Inicializacja kamery */
+	identity(cam_transform.m);
+	cam_transform.v[0] = 0;
+	cam_transform.v[1] = 0;
+	cam_transform.v[2] = 0;
+	cam_transform.is_identity = 0;
+
 	while(platform.running) {
 	        int16_t s[9];
 		int16_t r[9];
 		int16_t m[9];
+
+		/* kamera */
+		int16_t cam_rx[9], cam_ry[9], cam_inv_rot[9];
+		int16_t rel_pos[3];
 	
 		platform_begin_frame(&platform);
 
@@ -245,6 +267,25 @@ int main(int argc,char *argv[])
 			renderer.postprocess_enabled = 
 				!renderer.postprocess_enabled;
 		}
+
+		/*if (platform_key_pressed(&platform, SDL_SCANCODE_W)) {
+			trojkat.v[2] += 1024;
+		}
+
+		if (platform_key_pressed(&platform, SDL_SCANCODE_S)) {
+			trojkat.v[2] -= 1024;
+		}*/
+
+		/* --- 1. Sterowanie kamera (obrot strzalkami, ruch WSAD) --- */
+if (platform_key_down(&platform, SDL_SCANCODE_LEFT))  cam_yaw   = (cam_yaw - 4) & LUT_MASK;
+if (platform_key_down(&platform, SDL_SCANCODE_RIGHT)) cam_yaw   = (cam_yaw + 4) & LUT_MASK;
+if (platform_key_down(&platform, SDL_SCANCODE_UP))    cam_pitch = (cam_pitch - 4) & LUT_MASK;
+if (platform_key_down(&platform, SDL_SCANCODE_DOWN))  cam_pitch = (cam_pitch + 4) & LUT_MASK;
+
+if (platform_key_down(&platform, SDL_SCANCODE_W)) cam_transform.v[2] += 256;
+if (platform_key_down(&platform, SDL_SCANCODE_S)) cam_transform.v[2] -= 256;
+if (platform_key_down(&platform, SDL_SCANCODE_A)) cam_transform.v[0] -= 256;
+if (platform_key_down(&platform, SDL_SCANCODE_D)) cam_transform.v[0] += 256;
 
 		renderer_begin(&renderer);
 		renderer_set_clear_color(&renderer, 0.05f, 0.05f, 0.1f, 1.0f);
@@ -268,6 +309,13 @@ int main(int argc,char *argv[])
 		/* rotate_y(trojkat.m, DEG_TO_RAD(t * 16)); */
 		
 
+		/* Budujemy macierz rotacji kamery oraz jej odwrotnosc (transpozycje) */
+		rotate_x(cam_rx, cam_pitch);
+		rotate_y(cam_ry, cam_yaw);
+		multiply_mxm(cam_transform.m, cam_ry, cam_rx);
+		transpose_m(cam_inv_rot, cam_transform.m);
+
+		/* Budujemy macierz rotacji obiektu*/
 		scale(s, FIX_ONE, FIX_ONE, FIX_ONE);
 		/* TODO: tabela z wartosciami sin/cos  */
 		/* przed przepelnieniem chroni operacja bitowa AND*/
@@ -299,6 +347,13 @@ int main(int argc,char *argv[])
 		/*    dopiero dla kazdego wierzcholka po odjeciu jego pozycji (local - v).    */
 		/* -------------------------------------------------------------------------- */
 		multiply_vxm(local_light, world_light, inv_rot);
+
+
+		/* --- 4. Zlozenie obiektu z kamera do wspolnego cam_transform --- */
+		multiply_mxm(view_transform.m, trojkat.m, cam_inv_rot);
+		sub_v3(rel_pos, trojkat.v, cam_transform.v);
+		multiply_vxm(view_transform.v, rel_pos, cam_inv_rot);
+		cam_transform.is_identity = 0;
 
 		
 		/* =============================================
@@ -336,9 +391,9 @@ int main(int argc,char *argv[])
 		b = v1;
 		c = v2;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 0);
 			gte_apply_vertex_light(&b, 0);
@@ -353,9 +408,9 @@ int main(int argc,char *argv[])
 		b = v2;
 		c = v3;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 0);
 			gte_apply_vertex_light(&b, 200);
@@ -374,9 +429,9 @@ int main(int argc,char *argv[])
 		b = v4;
 		c = v7;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 		        gte_apply_vertex_light(&a, gte_calc_lambert(n5, local_light, 20, 255));
 	gte_apply_vertex_light(&b, gte_calc_lambert(n4, local_light, 20, 255));
@@ -390,9 +445,9 @@ int main(int argc,char *argv[])
 		b = v7;
 		c = v6;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, gte_calc_lambert(n5, local_light, 20, 255));
 	gte_apply_vertex_light(&b, gte_calc_lambert(n7, local_light, 20, 255));
@@ -409,9 +464,9 @@ int main(int argc,char *argv[])
 		b = v0;
 		c = v3;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 128);
 			gte_apply_vertex_light(&b, 128);
@@ -424,9 +479,9 @@ int main(int argc,char *argv[])
 		b = v3;
 		c = v7;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 128);
 			gte_apply_vertex_light(&b, 128);
@@ -444,9 +499,9 @@ int main(int argc,char *argv[])
 		b = v5;
 		c = v6;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 128);
 			gte_apply_vertex_light(&b, 128);
@@ -459,9 +514,9 @@ int main(int argc,char *argv[])
 		b = v6;
 		c = v2;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 128);
 			gte_apply_vertex_light(&b, 128);
@@ -479,9 +534,9 @@ int main(int argc,char *argv[])
 		b = v2;
 		c = v6;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			a.u = 0;
 			a.v = 0;
@@ -501,9 +556,9 @@ int main(int argc,char *argv[])
 		b = v6;
 		c = v7;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			a.u = 0;
 			a.v = 0;
@@ -528,9 +583,9 @@ int main(int argc,char *argv[])
 		b = v5;
 		c = v1;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 128);
 			gte_apply_vertex_light(&b, 128);
@@ -543,9 +598,9 @@ int main(int argc,char *argv[])
 		b = v1;
 		c = v0;
 
-		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &trojkat, INTERNAL_W, INTERNAL_H) &&
-				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &trojkat, INTERNAL_W, INTERNAL_H))
+		if (gte_project_vertex_3d(&a.x, &a.y, &a.z, &a.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&b.x, &b.y, &b.z, &b.x, &view_transform, INTERNAL_W, INTERNAL_H) &&
+				gte_project_vertex_3d(&c.x, &c.y, &c.z, &c.x, &view_transform, INTERNAL_W, INTERNAL_H))
 		{
 			gte_apply_vertex_light(&a, 128);
 			gte_apply_vertex_light(&b, 128);
@@ -564,6 +619,7 @@ int main(int argc,char *argv[])
 		   ======================================================= */
 		shader_use_program(program);
 
+		gpu_sort_triangles(&gpu);
 		gpu_receive_data(&gpu);
 		renderer_draw_frame(&gpu);
 		gpu_reset_stream(&gpu);

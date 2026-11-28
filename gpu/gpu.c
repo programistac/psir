@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stddef.h> /* NULL */
 #include <stdio.h> /* fpintf(stderr, ...) */
+#include <stdlib.h> /* qsort  */
 
 void gpu_destroy(struct gpu_data *data)
 {
@@ -236,4 +237,38 @@ void gpu_submit_triangle(
 	gpu->gpu_primitive_stream[gpu->gpu_vertex_count++] = *a;
 	gpu->gpu_primitive_stream[gpu->gpu_vertex_count++] = *b;
 	gpu->gpu_primitive_stream[gpu->gpu_vertex_count++] = *c;
+}
+
+/*
+ * Funkcja dla qsort() realizujaca algorytm malarza (Painter's Algorithm).
+ * Sortuje trojkaty malejaco wzgledem glebokosci Z (od najdalszych do najblizszych),
+ * dzieki czemu blizsze prymitywy nadpisuja dalsze bez uzycia sprzetowego Z-buffera.
+ * Zamiast sredniej (z0 + z1 + z2) / 3 uzywamy samej sumy Z, aby uniknac kosztownego dzielenia.
+ *  UWAGA: Wymaga back-face cullingu (odrzucania tylnych scianek),
+ * aby zapobiec przenikaniu niewidocznych scian przez front bryly.
+ *
+ * Kontekst PSX:
+ * Matematyka odpowiada sprzetowej instrukcji GTE AVSZ3 (srednie Z trojkata),
+ * ale bez dzielenia przez 3 (sama suma Z daje identyczny porzadek sortowania).
+ * Oryginalny PSX zamiast kosztownego qsort() i kopiowania danych w RAM uzywal
+ * listy powiazanej Ordering Table (OT) w czasie O(1) oraz transferu DMA.
+ * Tutaj sortuje ciagly bufor w miejscu pod jeden draw call OpenGL.
+ */
+
+static int compare_triangles_z(const void *p1, const void *p2)
+{
+    const struct gpu_vertex *t1 = (const struct gpu_vertex *)p1;
+    const struct gpu_vertex *t2 = (const struct gpu_vertex *)p2;
+
+    int32_t z1 = (int32_t)t1[0].z + t1[1].z + t1[2].z;
+    int32_t z2 = (int32_t)t2[0].z + t2[1].z + t2[2].z;
+
+    if (z1 < z2) return 1;
+    if (z1 > z2) return -1;
+    return 0;
+}
+
+void gpu_sort_triangles(struct gpu_data *gpu)
+{
+	qsort(gpu->gpu_primitive_stream, gpu->gpu_vertex_count / 3, sizeof(struct gpu_vertex) * 3, compare_triangles_z);
 }

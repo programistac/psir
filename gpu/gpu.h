@@ -100,4 +100,7 @@ void gpu_submit_triangle(
 	struct gpu_vertex *c
 );
 
+/* sortuje trojkaty po z (Depth Test) */
+void gpu_sort_triangles(struct gpu_data *gpu);
+
 #endif
