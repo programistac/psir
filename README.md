@@ -136,11 +136,12 @@ Completed
     [x] RGB555 color quantization
     [x] CLUT texture support
     [x] Lookup-table based trigonometry (sin/cos)
+    [x] Fixed-point lighting system
+    [x] Depth sorting (Painter's Algorithm)
+    [x] 3D camera system (yaw/pitch and view transform)
 
 In Progress
 
-    [ ] Fixed-point lighting system
-    [ ] Ordering Table (OT) implementation
     [ ] Back-face culling
     [ ] Custom binary model format
     [ ] Asset pipeline tooling
